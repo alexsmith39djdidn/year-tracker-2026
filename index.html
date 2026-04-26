@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026</title>
+<style>
+  :root {
+    --ink: #000;
+    --paper: #fff;
+    --line: #000;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    align-items: stretch;
+  }
+  .row {
+    display: grid;
+    gap: 3px;
+    width: 100%;
+  }
+  .days {
+    grid-template-columns: repeat(53, 1fr);
+    grid-auto-rows: 1fr;
+    aspect-ratio: 53 / 7;
+  }
+  .weeks {
+    grid-template-columns: repeat(52, 1fr);
+    aspect-ratio: 52 / 1;
+    gap: 4px;
+  }
+  .quarters {
+    grid-template-columns: repeat(4, 1fr);
+    aspect-ratio: 4 / 1;
+    gap: 8px;
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .cell {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    width: 100%;
+    height: 100%;
+  }
+  .cell.empty {
+    border: none;
+    background: transparent;
+  }
+  .cell.past {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .cell.now {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+  }
+  @media (max-width: 480px) {
+    .row { gap: 2px; }
+    .weeks { gap: 3px; }
+    .quarters { gap: 6px; }
+    .cell.now { border-width: 1.5px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="days" class="row days"></div>
+    <div id="weeks" class="row weeks"></div>
+    <div id="quarters" class="row quarters"></div>
+  </div>
+
+<script>
+(function () {
+  var YEAR = 2026;
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  var startOfYear = new Date(YEAR, 0, 1);
+  startOfYear.setHours(0, 0, 0, 0);
+  var endOfYear = new Date(YEAR + 1, 0, 1);
+  var totalDays = Math.round((endOfYear - startOfYear) / 86400000); // 365 or 366
+
+  // ---------- DAYS GRID: 53 columns x 7 rows, column-major ----------
+  // Column = ISO-like week column, row = day-of-week (Mon..Sun = 0..6)
+  var daysEl = document.getElementById('days');
+  var jan1Dow = (startOfYear.getDay() + 6) % 7; // 0 = Mon ... 6 = Sun
+  var totalCells = 53 * 7;
+  // Build rows: row 0..6, each row holds 53 cells in left-to-right order.
+  var rowFrags = [];
+  for (var r = 0; r < 7; r++) rowFrags.push([]);
+
+  for (var col = 0; col < 53; col++) {
+    for (var row = 0; row < 7; row++) {
+      // dayIndex within the year (0-based) for this (col,row), or -1 if outside
+      var idx = col * 7 + row - jan1Dow;
+      if (idx < 0 || idx >= totalDays) {
+        rowFrags[row].push({ empty: true });
+      } else {
+        var d = new Date(YEAR, 0, 1 + idx);
+        d.setHours(0, 0, 0, 0);
+        var cls = '';
+        if (d.getTime() < today.getTime()) cls = 'past';
+        else if (d.getTime() === today.getTime()) cls = 'now';
+        rowFrags[row].push({ empty: false, cls: cls });
+      }
+    }
+  }
+  // Now write in row-major order so CSS grid reads rows left-to-right.
+  var html = '';
+  for (var r2 = 0; r2 < 7; r2++) {
+    for (var c2 = 0; c2 < 53; c2++) {
+      var info = rowFrags[r2][c2];
+      if (info.empty) {
+        html += '<div class="cell empty"></div>';
+      } else {
+        html += '<div class="cell' + (info.cls ? ' ' + info.cls : '') + '"></div>';
+      }
+    }
+  }
+  daysEl.innerHTML = html;
+
+  // ---------- WEEKS GRID: 52 cells, one per week ----------
+  // Week n (0-based) covers days [n*7 .. n*7+6] from Jan 1.
+  var weeksEl = document.getElementById('weeks');
+  var weeksHtml = '';
+  for (var w = 0; w < 52; w++) {
+    var weekStart = new Date(YEAR, 0, 1 + w * 7);
+    weekStart.setHours(0, 0, 0, 0);
+    var weekEnd = new Date(YEAR, 0, 1 + w * 7 + 6);
+    weekEnd.setHours(0, 0, 0, 0);
+    var wcls = '';
+    if (weekEnd.getTime() < today.getTime()) wcls = 'past';
+    else if (today.getTime() >= weekStart.getTime() && today.getTime() <= weekEnd.getTime()) wcls = 'now';
+    weeksHtml += '<div class="cell' + (wcls ? ' ' + wcls : '') + '"></div>';
+  }
+  weeksEl.innerHTML = weeksHtml;
+
+  // ---------- QUARTERS: 4 cells ----------
+  var quartersEl = document.getElementById('quarters');
+  var qBoundaries = [
+    [new Date(YEAR, 0, 1), new Date(YEAR, 2, 31)],
+    [new Date(YEAR, 3, 1), new Date(YEAR, 5, 30)],
+    [new Date(YEAR, 6, 1), new Date(YEAR, 8, 30)],
+    [new Date(YEAR, 9, 1), new Date(YEAR, 11, 31)]
+  ];
+  var qHtml = '';
+  for (var q = 0; q < 4; q++) {
+    var qs = qBoundaries[q][0]; qs.setHours(0,0,0,0);
+    var qe = qBoundaries[q][1]; qe.setHours(0,0,0,0);
+    var qcls = '';
+    if (qe.getTime() < today.getTime()) qcls = 'past';
+    else if (today.getTime() >= qs.getTime() && today.getTime() <= qe.getTime()) qcls = 'now';
+    qHtml += '<div class="cell' + (qcls ? ' ' + qcls : '') + '"></div>';
+  }
+  quartersEl.innerHTML = qHtml;
+})();
+</script>
+</body>
+</html>
