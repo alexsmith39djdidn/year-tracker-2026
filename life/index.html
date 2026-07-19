@@ -12,14 +12,24 @@
     --muted: #9a9a9a;
     --line: #e6e6e6;
   }
-  html[data-theme="dark"] {
-    /* Matches Notion's dark page background. */
-    --bg: #191919;
-    --ink: #e9e9e9;
-    --fade: #3a3a3a;
-    --muted: #7d7d7d;
-    --line: #2c2c2c;
+  /* Theme follows the system automatically — no switch to press. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #191919;   /* matches Notion's dark page background */
+      --ink: #e9e9e9;
+      --fade: #3a3a3a;
+      --muted: #7d7d7d;
+      --line: #2c2c2c;
+    }
   }
+  /* ?theme=light / ?theme=dark still wins, in case the system and Notion disagree. */
+  html[data-theme="light"] {
+    --bg: #fff; --ink: #111; --fade: #d9d9d9; --muted: #9a9a9a; --line: #e6e6e6;
+  }
+  html[data-theme="dark"] {
+    --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c;
+  }
+
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
@@ -27,78 +37,49 @@
     background: var(--bg);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    transition: background 0.2s ease, color 0.2s ease;
   }
   body {
     min-height: 100vh;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    padding: 22px 16px;
-  }
-  .wrap {
-    width: 100%;
-    max-width: 880px;
-    position: relative;
-    /* Room above the columns so the toggle never sits on top of a percentage. */
-    padding-top: 30px;
+    padding: 18px 16px;
   }
 
-  /* ---------- theme toggle ---------- */
-  .theme {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    border: 1px solid var(--muted);
-    border-radius: 50%;
-    background: var(--bg);
-    cursor: pointer;
-    overflow: hidden;
-    opacity: 0.5;
-    transition: opacity 0.15s ease;
-  }
-  .theme:hover { opacity: 1; }
-  .theme::after {
-    content: "";
-    position: absolute;
-    top: 0; bottom: 0; left: 0;
-    width: 50%;
-    background: var(--ink);
-  }
-
-  /* ---------- layout ---------- */
+  /* Three columns side by side keep the whole thing wide and short,
+     so it fits one Notion embed without being cropped. */
   .cols {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    align-items: stretch;
+    grid-template-columns: repeat(3, minmax(0, 300px));
+    justify-content: center;
+    gap: 38px;
+    width: 100%;
+    align-items: start;
   }
-  section { display: flex; flex-direction: column; gap: 10px; }
+  section { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
 
   .head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 6px;
+    padding-bottom: 5px;
   }
   .label {
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted);
+    white-space: nowrap;
   }
   .pct {
-    font-size: 12px;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.03em;
   }
   .note {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--muted);
     letter-spacing: 0.02em;
     font-variant-numeric: tabular-nums;
@@ -108,7 +89,7 @@
   .grid {
     display: grid;
     grid-template-columns: repeat(52, 1fr);
-    gap: 2px;
+    gap: 1.5px;
     width: 100%;
   }
   .dot {
@@ -124,60 +105,48 @@
   }
 
   /* ---------- days counter ---------- */
-  /* Pushed to the bottom of its column so it balances the tall 80-year grid. */
-  .counter {
-    margin-top: auto;
-    padding-top: 18px;
-    border-top: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
   .big {
-    font-size: 52px;
-    line-height: 1;
+    font-size: 40px;
+    line-height: 1.05;
     font-weight: 300;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
+    margin-top: 2px;
   }
 
-  @media (max-width: 640px) {
-    .cols { grid-template-columns: 1fr; gap: 30px; }
-    .grid { gap: 1.5px; }
-    .big { font-size: 42px; }
-    .counter { margin-top: 8px; }
+  @media (max-width: 700px) {
+    .cols { grid-template-columns: minmax(0, 300px); gap: 22px; }
+    .big { font-size: 34px; }
   }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <button class="theme" id="theme" type="button" aria-label="Переключить тему"></button>
+  <div class="cols">
+    <section>
+      <div class="head">
+        <span class="label">80 лет</span>
+        <span class="pct" id="pct80"></span>
+      </div>
+      <div class="grid" id="grid80"></div>
+      <div class="note" id="note80"></div>
+    </section>
 
-    <div class="cols">
-      <section>
-        <div class="head">
-          <span class="label">80 лет</span>
-          <span class="pct" id="pct80"></span>
-        </div>
-        <div class="grid" id="grid80"></div>
-        <div class="note" id="note80"></div>
-      </section>
+    <section>
+      <div class="head">
+        <span class="label">30 лет</span>
+        <span class="pct" id="pct30"></span>
+      </div>
+      <div class="grid" id="grid30"></div>
+      <div class="note" id="note30"></div>
+    </section>
 
-      <section>
-        <div class="head">
-          <span class="label">30 лет</span>
-          <span class="pct" id="pct30"></span>
-        </div>
-        <div class="grid" id="grid30"></div>
-        <div class="note" id="note30"></div>
-
-        <div class="counter">
-          <div class="label">с 1 ноября 2021</div>
-          <div class="big" id="daysBig"></div>
-          <div class="note" id="daysNote"></div>
-        </div>
-      </section>
-    </div>
+    <section>
+      <div class="head">
+        <span class="label">с 1 ноября 2021</span>
+      </div>
+      <div class="big" id="daysBig"></div>
+      <div class="note" id="daysNote"></div>
+    </section>
   </div>
 
 <script>
@@ -216,7 +185,7 @@
 
   function nbsp(n) {
     // Thin space as a thousands separator — keeps big numbers readable.
-    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   }
 
   // ---------- grid rendering ----------
@@ -236,11 +205,10 @@
 
   function render() {
     var today = moscowToday();
-    var bornMs = utc(BORN);
 
     // One row = one year of life, so a week's position is counted from the last
     // birthday rather than straight from birth. Keeps every row exactly 52 dots
-    // while the percentage below still matches the real calendar to two decimals.
+    // while the percentage still matches the real calendar to two decimals.
     var age = new Date(today).getUTCFullYear() - BORN.y;
     if (today < Date.UTC(new Date(today).getUTCFullYear(), BORN.m - 1, BORN.d)) age--;
     var lastBirthday = Date.UTC(BORN.y + age, BORN.m - 1, BORN.d);
@@ -274,29 +242,9 @@
       ' · ' + (sinceDays / 365.2425).toFixed(2) + ' года';
   }
 
-  // ---------- theme ----------
-  var root = document.documentElement;
-
-  function applyTheme(t) {
-    root.setAttribute('data-theme', t);
-    try { localStorage.setItem('life-theme', t); } catch (e) {}
-  }
-
-  function initTheme() {
-    // Priority: ?theme= in the URL > saved choice > system preference.
-    var url = (location.search.match(/[?&]theme=(dark|light)/) || [])[1];
-    if (url) return applyTheme(url);
-    var saved = null;
-    try { saved = localStorage.getItem('life-theme'); } catch (e) {}
-    if (saved === 'dark' || saved === 'light') return applyTheme(saved);
-    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    applyTheme(dark ? 'dark' : 'light');
-  }
-
-  initTheme();
-  document.getElementById('theme').addEventListener('click', function () {
-    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-  });
+  // Optional override: ?theme=dark / ?theme=light. Otherwise the CSS media query decides.
+  var forced = (location.search.match(/[?&]theme=(dark|light)/) || [])[1];
+  if (forced) document.documentElement.setAttribute('data-theme', forced);
 
   render();
   // A week or a day only turns over once — a minute of granularity is plenty.
