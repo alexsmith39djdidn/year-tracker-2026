@@ -42,20 +42,23 @@
     aspect-ratio: 53 / 7;
     gap: 2px;
   }
+  /* Same 53 columns as the days grid — each week sits exactly under its column. */
   .weeks {
-    grid-template-columns: repeat(52, 1fr);
-    aspect-ratio: 52 / 1;
+    grid-template-columns: repeat(53, 1fr);
+    aspect-ratio: 53 / 1;
     gap: 2px;
-  }
-  .hours {
-    grid-template-columns: repeat(24, 1fr);
-    aspect-ratio: 24 / 1;
-    gap: 3px;
   }
   .quarters {
     grid-template-columns: repeat(4, 1fr);
-    aspect-ratio: 4 / 1;
-    gap: 6px;
+    gap: 14px;
+  }
+  /* Each quarter is its own little grid: 13 weeks × 7 days = 91 cells, no ragged edge. */
+  .quarter {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    grid-auto-rows: 1fr;
+    aspect-ratio: 13 / 7;
+    gap: 2px;
   }
   .cell {
     background: var(--paper);
@@ -93,9 +96,8 @@
   }
   @media (max-width: 480px) {
     .wrap { gap: 14px; }
-    .days, .weeks { gap: 1.5px; }
-    .quarters { gap: 4px; }
-    .hours { gap: 2px; }
+    .days, .weeks, .quarter { gap: 1.5px; }
+    .quarters { gap: 8px; }
   }
 </style>
 </head>
@@ -183,12 +185,20 @@
     }
     daysEl.innerHTML = html;
 
-    // ---------- WEEKS GRID: 52 cells ----------
+    // ---------- WEEKS GRID: 53 cells, one per column of the days grid ----------
+    // Week w covers exactly the days shown in column w above, so the two rows line up.
     var weeksEl = document.getElementById('weeks');
     var weeksHtml = '';
-    for (var w = 0; w < 52; w++) {
-      var ws = new Date(YEAR, 0, 1 + w * 7); ws.setHours(0, 0, 0, 0);
-      var we = new Date(YEAR, 0, 1 + w * 7 + 6); we.setHours(0, 0, 0, 0);
+    for (var w = 0; w < 53; w++) {
+      // First and last columns are clipped by the year boundaries.
+      var firstIdx = Math.max(0, w * 7 - jan1Dow);
+      var lastIdx = Math.min(totalDays - 1, w * 7 + 6 - jan1Dow);
+      if (firstIdx > lastIdx) {
+        weeksHtml += '<div class="cell empty"></div>';
+        continue;
+      }
+      var ws = new Date(YEAR, 0, 1 + firstIdx); ws.setHours(0, 0, 0, 0);
+      var we = new Date(YEAR, 0, 1 + lastIdx); we.setHours(0, 0, 0, 0);
       var wcls = '';
       if (we.getTime() < today.getTime()) wcls = 'past';
       else if (today.getTime() >= ws.getTime() && today.getTime() <= we.getTime()) wcls = 'now';
@@ -196,7 +206,10 @@
     }
     weeksEl.innerHTML = weeksHtml;
 
-    // ---------- QUARTERS: 4 cells with partial fill by days ----------
+    // ---------- QUARTERS: 4 mini grids of 13 weeks × 7 days ----------
+    // A quarter runs 90–92 days, so cells map to it proportionally rather than
+    // one-per-day: that keeps all four blocks perfect rectangles with no gaps,
+    // at the cost of at most a single day of rounding.
     var quartersEl = document.getElementById('quarters');
     var qBoundaries = [
       [new Date(YEAR, 0, 1),  new Date(YEAR, 3, 1)],
@@ -209,39 +222,27 @@
       var qs = qBoundaries[q][0]; qs.setHours(0,0,0,0);
       var qe = qBoundaries[q][1]; qe.setHours(0,0,0,0);
       var qTotalDays = Math.round((qe - qs) / 86400000);
-      var nowMs = today.getTime() + dayFrac * 86400000;
-      var passedMs = nowMs - qs.getTime();
-      var frac = passedMs / (qTotalDays * 86400000);
-      if (frac <= 0) {
-        qHtml += '<div class="cell"></div>';
-      } else if (frac >= 1) {
-        qHtml += '<div class="cell past"></div>';
-      } else {
-        var pct = (frac * 100).toFixed(2);
-        qHtml += '<div class="cell partial"><i style="height:' + pct + '%"></i></div>';
+      var QCELLS = 91;
+      // How many cells the elapsed part of this quarter fills right now.
+      var daysIntoQ = (today.getTime() - qs.getTime()) / 86400000;
+      var filled = Math.round(daysIntoQ / qTotalDays * QCELLS);
+      if (filled < 0) filled = 0;
+      if (filled > QCELLS) filled = QCELLS;
+
+      var cellsHtml = '';
+      for (var i = 0; i < QCELLS; i++) {
+        // Column-major, same reading direction as the days grid above.
+        var col = Math.floor(i / 7);
+        var row = i % 7;
+        var idxQ = col * 7 + row;
+        var qcls = '';
+        if (idxQ < filled) qcls = 'past';
+        else if (idxQ === filled && filled > 0) qcls = 'now';
+        cellsHtml += '<div class="cell' + (qcls ? ' ' + qcls : '') + '"></div>';
       }
+      qHtml += '<div class="quarter">' + cellsHtml + '</div>';
     }
     quartersEl.innerHTML = qHtml;
-
-    // ---------- HOURS: 24 cells, MSK ----------
-    var hoursEl = document.getElementById('hours');
-    var hoursHtml = '';
-    for (var h = 0; h < 24; h++) {
-      if (h < msk.hour) {
-        hoursHtml += '<div class="cell past"></div>';
-      } else if (h === msk.hour) {
-        var minFrac = (msk.minute * 60 + msk.second) / 3600;
-        var mpct = (minFrac * 100).toFixed(2);
-        if (minFrac <= 0) {
-          hoursHtml += '<div class="cell"></div>';
-        } else {
-          hoursHtml += '<div class="cell partial"><i style="height:' + mpct + '%"></i></div>';
-        }
-      } else {
-        hoursHtml += '<div class="cell"></div>';
-      }
-    }
-    hoursEl.innerHTML = hoursHtml;
 
     // ---------- PERCENT ----------
     var pctEl = document.getElementById('percent');

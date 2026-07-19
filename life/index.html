@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Жизнь</title>
+<style>
+  :root {
+    --bg: #fff;
+    --ink: #111;
+    --fade: #d9d9d9;
+    --muted: #9a9a9a;
+    --line: #e6e6e6;
+  }
+  html[data-theme="dark"] {
+    /* Matches Notion's dark page background. */
+    --bg: #191919;
+    --ink: #e9e9e9;
+    --fade: #3a3a3a;
+    --muted: #7d7d7d;
+    --line: #2c2c2c;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 22px 16px;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 880px;
+    position: relative;
+    /* Room above the columns so the toggle never sits on top of a percentage. */
+    padding-top: 30px;
+  }
+
+  /* ---------- theme toggle ---------- */
+  .theme {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--muted);
+    border-radius: 50%;
+    background: var(--bg);
+    cursor: pointer;
+    overflow: hidden;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+  }
+  .theme:hover { opacity: 1; }
+  .theme::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 50%;
+    background: var(--ink);
+  }
+
+  /* ---------- layout ---------- */
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: stretch;
+  }
+  section { display: flex; flex-direction: column; gap: 10px; }
+
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  .label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pct {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+  }
+  .note {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- dot grids ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(52, 1fr);
+    gap: 2px;
+    width: 100%;
+  }
+  .dot {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--fade);
+  }
+  .dot.lived { background: var(--ink); }
+  .dot.now {
+    background: var(--ink);
+    outline: 1.5px solid var(--ink);
+    outline-offset: 1.5px;
+  }
+
+  /* ---------- days counter ---------- */
+  /* Pushed to the bottom of its column so it balances the tall 80-year grid. */
+  .counter {
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .big {
+    font-size: 52px;
+    line-height: 1;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 640px) {
+    .cols { grid-template-columns: 1fr; gap: 30px; }
+    .grid { gap: 1.5px; }
+    .big { font-size: 42px; }
+    .counter { margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <button class="theme" id="theme" type="button" aria-label="Переключить тему"></button>
+
+    <div class="cols">
+      <section>
+        <div class="head">
+          <span class="label">80 лет</span>
+          <span class="pct" id="pct80"></span>
+        </div>
+        <div class="grid" id="grid80"></div>
+        <div class="note" id="note80"></div>
+      </section>
+
+      <section>
+        <div class="head">
+          <span class="label">30 лет</span>
+          <span class="pct" id="pct30"></span>
+        </div>
+        <div class="grid" id="grid30"></div>
+        <div class="note" id="note30"></div>
+
+        <div class="counter">
+          <div class="label">с 1 ноября 2021</div>
+          <div class="big" id="daysBig"></div>
+          <div class="note" id="daysNote"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+(function () {
+  // ---------- constants ----------
+  var BORN = { y: 2005, m: 11, d: 8 };   // 8 ноября 2005
+  var SINCE = { y: 2021, m: 11, d: 1 };  // 1 ноября 2021
+  var DAY = 86400000;
+  var COLS = 52;                          // one row of dots = one year of life
+
+  // UTC anchors avoid any DST/timezone drift in the day arithmetic.
+  function utc(o) { return Date.UTC(o.y, o.m - 1, o.d); }
+
+  // Current Moscow date, read via Intl so the host timezone doesn't matter.
+  function moscowToday() {
+    var fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Moscow',
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+    var p = {};
+    fmt.formatToParts(new Date()).forEach(function (x) {
+      if (x.type !== 'literal') p[x.type] = x.value;
+    });
+    return Date.UTC(+p.year, +p.month - 1, +p.day);
+  }
+
+  // Russian plural: 1 день / 2 дня / 5 дней
+  function plural(n, one, few, many) {
+    var a = Math.abs(n) % 100;
+    var b = a % 10;
+    if (a > 10 && a < 20) return many;
+    if (b > 1 && b < 5) return few;
+    if (b === 1) return one;
+    return many;
+  }
+
+  function nbsp(n) {
+    // Thin space as a thousands separator — keeps big numbers readable.
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  }
+
+  // ---------- grid rendering ----------
+  function buildGrid(el, years, weeksLived) {
+    var total = years * COLS;
+    var html = '';
+    for (var i = 0; i < total; i++) {
+      var cls = 'dot';
+      if (i < weeksLived) cls += ' lived';
+      else if (i === weeksLived) cls += ' now';
+      html += '<div class="' + cls + '"></div>';
+    }
+    el.innerHTML = html;
+  }
+
+  var lastWeeks = -1;
+
+  function render() {
+    var today = moscowToday();
+    var bornMs = utc(BORN);
+
+    // One row = one year of life, so a week's position is counted from the last
+    // birthday rather than straight from birth. Keeps every row exactly 52 dots
+    // while the percentage below still matches the real calendar to two decimals.
+    var age = new Date(today).getUTCFullYear() - BORN.y;
+    if (today < Date.UTC(new Date(today).getUTCFullYear(), BORN.m - 1, BORN.d)) age--;
+    var lastBirthday = Date.UTC(BORN.y + age, BORN.m - 1, BORN.d);
+    var weeksLived = age * COLS + Math.floor((today - lastBirthday) / DAY / 7);
+
+    var total80 = 80 * COLS;
+    var total30 = 30 * COLS;
+
+    // Redraw the dot grids only when a new week has actually started.
+    if (weeksLived !== lastWeeks) {
+      buildGrid(document.getElementById('grid80'), 80, weeksLived);
+      buildGrid(document.getElementById('grid30'), 30, weeksLived);
+      lastWeeks = weeksLived;
+    }
+
+    document.getElementById('pct80').textContent = (weeksLived / total80 * 100).toFixed(2) + '%';
+    document.getElementById('pct30').textContent = (weeksLived / total30 * 100).toFixed(2) + '%';
+
+    document.getElementById('note80').textContent =
+      nbsp(weeksLived) + ' из ' + nbsp(total80) + ' недель · осталось ' + nbsp(total80 - weeksLived);
+    document.getElementById('note30').textContent =
+      nbsp(weeksLived) + ' из ' + nbsp(total30) + ' недель · осталось ' + nbsp(total30 - weeksLived);
+
+    // ---------- days since 1 Nov 2021 ----------
+    var sinceDays = Math.floor((today - utc(SINCE)) / DAY);
+    document.getElementById('daysBig').textContent =
+      nbsp(sinceDays) + ' ' + plural(sinceDays, 'день', 'дня', 'дней');
+    var sinceWeeks = Math.floor(sinceDays / 7);
+    document.getElementById('daysNote').textContent =
+      nbsp(sinceWeeks) + ' ' + plural(sinceWeeks, 'неделя', 'недели', 'недель') +
+      ' · ' + (sinceDays / 365.2425).toFixed(2) + ' года';
+  }
+
+  // ---------- theme ----------
+  var root = document.documentElement;
+
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    try { localStorage.setItem('life-theme', t); } catch (e) {}
+  }
+
+  function initTheme() {
+    // Priority: ?theme= in the URL > saved choice > system preference.
+    var url = (location.search.match(/[?&]theme=(dark|light)/) || [])[1];
+    if (url) return applyTheme(url);
+    var saved = null;
+    try { saved = localStorage.getItem('life-theme'); } catch (e) {}
+    if (saved === 'dark' || saved === 'light') return applyTheme(saved);
+    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(dark ? 'dark' : 'light');
+  }
+
+  initTheme();
+  document.getElementById('theme').addEventListener('click', function () {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  render();
+  // A week or a day only turns over once — a minute of granularity is plenty.
+  setInterval(render, 60000);
+})();
+</script>
+</body>
+</html>
