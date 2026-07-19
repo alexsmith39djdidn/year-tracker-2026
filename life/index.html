@@ -43,110 +43,128 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 18px 16px;
+    padding: 16px;
+  }
+  .wrap {
+    width: 100%;
+    /* Capped so the widget stays a small rectangle even in a full-width block. */
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
 
-  /* Three columns side by side keep the whole thing wide and short,
-     so it fits one Notion embed without being cropped. */
-  .cols {
+  /* Both grids share one row, sized 80:30 — so a dot is the same size in each
+     and the 30-year strip reads as a slice of the 80-year one. */
+  .rows {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 300px));
-    justify-content: center;
-    gap: 38px;
-    width: 100%;
+    grid-template-columns: 80fr 30fr;
+    gap: 16px;
     align-items: start;
   }
-  section { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+  section { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 
   .head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 5px;
+    padding-bottom: 4px;
   }
   .label {
-    font-size: 10px;
-    letter-spacing: 0.14em;
+    font-size: 9px;
+    letter-spacing: 0.13em;
     text-transform: uppercase;
     color: var(--muted);
     white-space: nowrap;
   }
   .pct {
-    font-size: 11px;
+    font-size: 10px;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.03em;
+    white-space: nowrap;
   }
   .note {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--muted);
-    letter-spacing: 0.02em;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
-  /* ---------- dot grids ---------- */
+  /* ---------- dot grids, laid on their side ----------
+     A column is one year of life, a row is one week of that year: 52 rows tall
+     instead of 80, which keeps the whole widget wide and short. */
   .grid {
     display: grid;
-    grid-template-columns: repeat(52, 1fr);
-    gap: 1.5px;
+    grid-template-rows: repeat(52, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 1px;
     width: 100%;
   }
+  .g80 { aspect-ratio: 80 / 52; }
+  .g30 { aspect-ratio: 30 / 52; }
   .dot {
-    aspect-ratio: 1;
     border-radius: 50%;
     background: var(--fade);
   }
   .dot.lived { background: var(--ink); }
   .dot.now {
     background: var(--ink);
-    outline: 1.5px solid var(--ink);
-    outline-offset: 1.5px;
+    outline: 1px solid var(--ink);
+    outline-offset: 1px;
   }
 
   /* ---------- days counter ---------- */
+  .counter {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    flex-wrap: wrap;
+  }
   .big {
-    font-size: 40px;
-    line-height: 1.05;
+    font-size: 22px;
+    line-height: 1;
     font-weight: 300;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
-    margin-top: 2px;
   }
 
-  @media (max-width: 700px) {
-    .cols { grid-template-columns: minmax(0, 300px); gap: 22px; }
-    .big { font-size: 34px; }
+  @media (max-width: 420px) {
+    .label, .note { font-size: 8px; }
+    .big { font-size: 18px; }
   }
 </style>
 </head>
 <body>
-  <div class="cols">
-    <section>
-      <div class="head">
-        <span class="label">80 лет</span>
-        <span class="pct" id="pct80"></span>
-      </div>
-      <div class="grid" id="grid80"></div>
-      <div class="note" id="note80"></div>
-    </section>
+  <div class="wrap">
+    <div class="rows">
+      <section>
+        <div class="head">
+          <span class="label">80 лет</span>
+          <span class="pct" id="pct80"></span>
+        </div>
+        <div class="grid g80" id="grid80"></div>
+        <div class="note" id="note80"></div>
+      </section>
 
-    <section>
-      <div class="head">
-        <span class="label">30 лет</span>
-        <span class="pct" id="pct30"></span>
-      </div>
-      <div class="grid" id="grid30"></div>
-      <div class="note" id="note30"></div>
-    </section>
+      <section>
+        <div class="head">
+          <span class="label">30 лет</span>
+          <span class="pct" id="pct30"></span>
+        </div>
+        <div class="grid g30" id="grid30"></div>
+        <div class="note" id="note30"></div>
+      </section>
+    </div>
 
-    <section>
-      <div class="head">
-        <span class="label">с 1 ноября 2021</span>
-      </div>
-      <div class="big" id="daysBig"></div>
-      <div class="note" id="daysNote"></div>
-    </section>
+    <div class="counter">
+      <span class="label">с 1 ноября 2021</span>
+      <span class="big" id="daysBig"></span>
+      <span class="note" id="daysNote"></span>
+    </div>
   </div>
 
 <script>
@@ -155,7 +173,7 @@
   var BORN = { y: 2005, m: 11, d: 8 };   // 8 ноября 2005
   var SINCE = { y: 2021, m: 11, d: 1 };  // 1 ноября 2021
   var DAY = 86400000;
-  var COLS = 52;                          // one row of dots = one year of life
+  var ROWS = 52;                          // one column of dots = one year of life
 
   // UTC anchors avoid any DST/timezone drift in the day arithmetic.
   function utc(o) { return Date.UTC(o.y, o.m - 1, o.d); }
@@ -189,8 +207,10 @@
   }
 
   // ---------- grid rendering ----------
+  // Dots are emitted in week order; grid-auto-flow: column fills them
+  // top-to-bottom, year by year.
   function buildGrid(el, years, weeksLived) {
-    var total = years * COLS;
+    var total = years * ROWS;
     var html = '';
     for (var i = 0; i < total; i++) {
       var cls = 'dot';
@@ -206,16 +226,16 @@
   function render() {
     var today = moscowToday();
 
-    // One row = one year of life, so a week's position is counted from the last
-    // birthday rather than straight from birth. Keeps every row exactly 52 dots
-    // while the percentage still matches the real calendar to two decimals.
+    // One column = one year of life, so a week's position is counted from the
+    // last birthday rather than straight from birth. Keeps every column exactly
+    // 52 dots while the percentage still matches the real calendar to two decimals.
     var age = new Date(today).getUTCFullYear() - BORN.y;
     if (today < Date.UTC(new Date(today).getUTCFullYear(), BORN.m - 1, BORN.d)) age--;
     var lastBirthday = Date.UTC(BORN.y + age, BORN.m - 1, BORN.d);
-    var weeksLived = age * COLS + Math.floor((today - lastBirthday) / DAY / 7);
+    var weeksLived = age * ROWS + Math.floor((today - lastBirthday) / DAY / 7);
 
-    var total80 = 80 * COLS;
-    var total30 = 30 * COLS;
+    var total80 = 80 * ROWS;
+    var total30 = 30 * ROWS;
 
     // Redraw the dot grids only when a new week has actually started.
     if (weeksLived !== lastWeeks) {
@@ -228,9 +248,9 @@
     document.getElementById('pct30').textContent = (weeksLived / total30 * 100).toFixed(2) + '%';
 
     document.getElementById('note80').textContent =
-      nbsp(weeksLived) + ' из ' + nbsp(total80) + ' недель · осталось ' + nbsp(total80 - weeksLived);
+      nbsp(weeksLived) + ' из ' + nbsp(total80) + ' недель';
     document.getElementById('note30').textContent =
-      nbsp(weeksLived) + ' из ' + nbsp(total30) + ' недель · осталось ' + nbsp(total30 - weeksLived);
+      nbsp(weeksLived) + ' из ' + nbsp(total30);
 
     // ---------- days since 1 Nov 2021 ----------
     var sinceDays = Math.floor((today - utc(SINCE)) / DAY);

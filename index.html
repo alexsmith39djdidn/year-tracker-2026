@@ -9,6 +9,16 @@
     --ink: #000;
     --paper: #fff;
   }
+  /* Theme follows the system automatically. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e9e9e9;
+      --paper: #191919;   /* matches Notion's dark page background */
+    }
+  }
+  /* ?theme=light / ?theme=dark overrides it, if the system and Notion disagree. */
+  html[data-theme="light"] { --ink: #000; --paper: #fff; }
+  html[data-theme="dark"]  { --ink: #e9e9e9; --paper: #191919; }
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
@@ -111,6 +121,10 @@
 
 <script>
 (function () {
+  // Optional override: ?theme=dark / ?theme=light. Otherwise the CSS media query decides.
+  var forcedTheme = (location.search.match(/[?&]theme=(dark|light)/) || [])[1];
+  if (forcedTheme) document.documentElement.setAttribute('data-theme', forcedTheme);
+
   function startOfDay(d) {
     var x = new Date(d);
     x.setHours(0, 0, 0, 0);
