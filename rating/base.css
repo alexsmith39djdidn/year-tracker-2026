@@ -1,0 +1,60 @@
+/* Общий каркас виджетов карты прокачки — чёрно-белый канон.
+   Цвет несёт только зону балла, всё остальное монохром. */
+
+:root {
+  --bg: #fff;
+  --ink: #111;
+  --fade: #d9d9d9;
+  --muted: #9a9a9a;
+  --line: #e6e6e6;
+  --z-red: #c0392b;
+  --z-orange: #cf7c2b;
+  --z-yellow: #c9a227;
+  --z-green: #4f8a4a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #191919;
+    --ink: #e9e9e9;
+    --fade: #3a3a3a;
+    --muted: #7d7d7d;
+    --line: #2c2c2c;
+    --z-red: #d15a4c;
+    --z-orange: #d99450;
+    --z-yellow: #d4b64a;
+    --z-green: #6aa564;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #fff; --ink: #111; --fade: #d9d9d9; --muted: #9a9a9a; --line: #e6e6e6;
+  --z-red: #c0392b; --z-orange: #cf7c2b; --z-yellow: #c9a227; --z-green: #4f8a4a;
+}
+
+:root[data-theme="dark"] {
+  --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c;
+  --z-red: #d15a4c; --z-orange: #d99450; --z-yellow: #d4b64a; --z-green: #6aa564;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { padding: 18px 20px; }
+
+.cap {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; }
