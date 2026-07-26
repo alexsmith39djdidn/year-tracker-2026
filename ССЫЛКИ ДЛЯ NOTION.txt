@@ -23,6 +23,62 @@ https://alexsmith39djdidn.github.io/year-tracker-2026/energy/
 
    Данные обновляю я (Auri) при разборе дня и недели.
 
+════════════════════════════════════════
+КАРТА ПРОКАЧКИ — РЕЙТИНГИ (новое, 26.07.2026)
+════════════════════════════════════════
+
+4. ОБЩИЙ РЕЙТИНГ — индекс ВОЛЬТЫ
+   Большое число, шкала зон, планка 70,
+   и полоска «чем мы это меряем».
+   Ставить блоком НА ВСЮ СТРОКУ.
+
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/
+
+────────────────────────────────────────
+5. ШКАЛА ПО ОБЛАСТЯМ — паутина (радар)
+   7 областей, пунктир — планка 70.
+   Блок на всю строку, высота ~480.
+
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/radar/
+
+────────────────────────────────────────
+6. ВСЕ ОБЛАСТИ КВАДРАТИКАМИ — одним блоком
+   Семь карточек сразу, сами встают в сетку.
+   Блок на всю строку, высота ~800.
+
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/
+
+────────────────────────────────────────
+7. ОТДЕЛЬНЫЕ КВАДРАТИКИ ПО ОБЛАСТЯМ
+   Если хочешь разложить их по странице
+   поштучно — вот ссылка на каждую.
+   Такие можно ставить по 2–3 в строку.
+
+Интегральные:
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/?g=core
+
+Стабильность:
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/?g=stability
+
+Питание:
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/?g=food
+
+Спорт:
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/?g=sport
+
+Здоровье:
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/?g=health
+
+Голова:
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/?g=head
+
+Дух:
+https://alexsmith39djdidn.github.io/year-tracker-2026/rating/group/?g=spirit
+
+   Цифры во всех этих виджетах обновляю я —
+   в одном файле rating/data.js. Правлю его,
+   и меняются сразу все блоки.
+
 ────────────────────────────────────────
 ЕСЛИ НУЖНО ЗАФИКСИРОВАТЬ ТЕМУ
 
