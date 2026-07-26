@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<!--
+  ВИДЖЕТ ЭНЕРГИИ — ВОЛЬТА
+  Слева: спидометр Резерва (глубокая батарея, меняется медленно).
+  Справа: Current по дням — точка = среднее за день, вертикаль = размах утро→вечер.
+
+  ДАННЫЕ ОБНОВЛЯЕТ AURI — все константы наверху скрипта, блок «ДАННЫЕ».
+  Источник: карточки дня в «Мои действия/» + разборы в «ВОЛЬТА/Анализы/».
+
+  Цвет здесь — единственное отступление от монохромного канона: он несёт
+  смысл зоны состояния, а не украшает. Каркас, цифры и подписи — чёрно-белые.
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Энергия — ВОЛЬТА</title>
+<style>
+  :root {
+    --bg: #fff;
+    --ink: #111;
+    --fade: #d9d9d9;
+    --muted: #9a9a9a;
+    --line: #e6e6e6;
+    /* Зоны — приглушённые, под тон Notion, а не светофорные. */
+    --z-red:    #c0392b;
+    --z-orange: #cf7c2b;
+    --z-yellow: #c9a227;
+    --z-green:  #4f8a4a;
+    --z-purple: #7b52ab;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #191919;
+      --ink: #e9e9e9;
+      --fade: #3a3a3a;
+      --muted: #7d7d7d;
+      --line: #2c2c2c;
+      --z-red:    #d15a4c;
+      --z-orange: #d99450;
+      --z-yellow: #d4b64a;
+      --z-green:  #6aa564;
+      --z-purple: #9a72c9;
+    }
+  }
+  html[data-theme="light"] {
+    --bg: #fff; --ink: #111; --fade: #d9d9d9; --muted: #9a9a9a; --line: #e6e6e6;
+    --z-red: #c0392b; --z-orange: #cf7c2b; --z-yellow: #c9a227; --z-green: #4f8a4a; --z-purple: #7b52ab;
+  }
+  html[data-theme="dark"] {
+    --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c;
+    --z-red: #d15a4c; --z-orange: #d99450; --z-yellow: #d4b64a; --z-green: #6aa564; --z-purple: #9a72c9;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    gap: 34px;
+    align-items: stretch;
+  }
+
+  .cap {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Спидометр ───────────────────────────────────────── */
+  .gauge {
+    flex: 0 0 300px;
+    display: flex; flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .dial { position: relative; width: 300px; height: 186px; }
+  .dial svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .dial .center {
+    position: absolute;
+    left: 0; right: 0;
+    top: 84px;
+    text-align: center;
+  }
+  .big {
+    font-size: 62px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .zone-name {
+    margin-top: 7px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .scale-ends {
+    width: 300px;
+    display: flex; justify-content: space-between;
+    margin-top: -6px;
+  }
+  .gauge-foot {
+    width: 100%;
+    border-top: 1px solid var(--line);
+    padding-top: 9px;
+    display: flex; justify-content: space-between;
+    gap: 10px;
+  }
+  .gauge-foot div { text-align: center; flex: 1; }
+  .gauge-foot .v {
+    font-size: 15px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 3px;
+  }
+
+  /* ── Легенда зон ─────────────────────────────────────── */
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .legend i {
+    width: 6px; height: 6px; border-radius: 50%;
+    display: inline-block; flex: 0 0 6px;
+  }
+
+  /* ── График ──────────────────────────────────────────── */
+  .chart { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+  .chart-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px;
+  }
+  .trend { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .trend b { color: var(--ink); font-weight: 600; }
+  .plot { position: relative; flex: 1 1 auto; min-height: 168px; }
+  .plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .chart-foot {
+    margin-top: 9px; padding-top: 9px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; gap: 12px;
+  }
+
+  /* Узкий блок — складываемся в столбик. */
+  @media (max-width: 760px) {
+    .wrap { flex-direction: column; gap: 22px; align-items: center; }
+    .gauge { flex: 0 0 auto; }
+    .chart { width: 100%; }
+    .plot { min-height: 150px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Спидометр -->
+  <div class="gauge">
+    <div class="dial">
+      <svg id="dial" viewBox="0 0 300 186" aria-hidden="true"></svg>
+      <div class="center">
+        <div class="big" id="big">—</div>
+        <div class="zone-name" id="zoneName">—</div>
+      </div>
+    </div>
+    <div class="scale-ends">
+      <span class="cap">0</span>
+      <span class="cap">100</span>
+    </div>
+    <div class="gauge-foot">
+      <div><div class="v" id="curNow">—</div><span class="cap">сейчас</span></div>
+      <div><div class="v" id="weekAvg">—</div><span class="cap">среднее&nbsp;7&nbsp;дней</span></div>
+      <div><div class="v" id="streak">—</div><span class="cap">дней&nbsp;без&nbsp;откиса</span></div>
+    </div>
+  </div>
+
+  <!-- График -->
+  <div class="chart">
+    <div class="chart-head">
+      <span class="cap">Current по дням · размах утро → вечер</span>
+      <span class="trend" id="trend"></span>
+    </div>
+    <div class="plot"><svg id="plot"></svg></div>
+    <div class="chart-foot">
+      <span class="cap" id="periodLabel">—</span>
+      <span class="cap" id="minmax">—</span>
+    </div>
+    <div class="legend cap" id="legend"></div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ═══════════════ ДАННЫЕ — обновляет Auri ═══════════════
+     m — энергия утром, e — энергия вечером (оценка Auri по словам Саши).
+     Добавляю новый день в конец; график сам показывает последние 14. */
+  var ENERGY = [
+    { d: '2026-07-19', m: 75, e: 75 },
+    { d: '2026-07-20', m: 55, e: 50 },
+    { d: '2026-07-21', m: 50, e: 50 },
+    { d: '2026-07-22', m: 35, e: 55 },
+    { d: '2026-07-23', m: 30, e: 55 },
+    { d: '2026-07-24', m: 65, e: 45 },
+    { d: '2026-07-25', m: 50, e: 75 }
+  ];
+
+  var RESERVE      = 59;          // Резерв сейчас (глубокая батарея)
+  var RESERVE_PREV = 65;          // Резерв неделю назад — для стрелки тренда
+  var LAST_SLUMP   = '2026-02-16';// последний день откиса (Notion «Дни откиса»)
+  var SHOW_DAYS    = 14;          // сколько последних дней рисуем
+
+  /* ═══════════════ ЗОНЫ ═══════════════ */
+  var ZONES = [
+    { lo: 0,  hi: 19,  name: 'Истощение',   v: '--z-red'    },
+    { lo: 20, hi: 49,  name: 'Усталость',   v: '--z-orange' },
+    { lo: 50, hi: 79,  name: 'Рабочая',     v: '--z-yellow' },
+    { lo: 80, hi: 89,  name: 'Пик',         v: '--z-green'  },
+    { lo: 90, hi: 100, name: 'Режим психа', v: '--z-purple' }
+  ];
+  function zoneOf(v) {
+    for (var i = 0; i < ZONES.length; i++) {
+      if (v >= ZONES[i].lo && v <= ZONES[i].hi) return ZONES[i];
+    }
+    return ZONES[0];
+  }
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  function el(name, attrs) {
+    var n = document.createElementNS(SVG_NS, name);
+    for (var k in attrs) if (attrs.hasOwnProperty(k)) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function plural(n, one, few, many) {
+    var a = Math.abs(n) % 100, b = a % 10;
+    if (a > 10 && a < 20) return many;
+    if (b > 1 && b < 5) return few;
+    if (b === 1) return one;
+    return many;
+  }
+  function spaced(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function round1(x) { return Math.round(x * 10) / 10; }
+
+  /* Дата в МСК, без опоры на часовой пояс машины. */
+  function mskToday() {
+    var p = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    var o = {};
+    p.forEach(function (x) { o[x.type] = x.value; });
+    return o.year + '-' + o.month + '-' + o.day;
+  }
+  function toUTC(iso) {
+    var a = iso.split('-');
+    return Date.UTC(+a[0], +a[1] - 1, +a[2]);
+  }
+  function daysBetween(a, b) { return Math.round((toUTC(b) - toUTC(a)) / 86400000); }
+
+  var WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+  function weekday(iso) { return WD[new Date(toUTC(iso)).getUTCDay()]; }
+  function dayNum(iso) { return String(+iso.split('-')[2]); }
+
+  /* ═══════════════ СПИДОМЕТР ═══════════════
+     Дуга 240° из точек. Точка окрашена в цвет своей зоны:
+     до текущего значения — в полную силу, дальше — приглушённо. */
+  var DOTS = 44, ARC = 240, R = 118, CX = 150, CY = 150;
+
+  function drawDial(value) {
+    var svg = document.getElementById('dial');
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var start = 180 + (180 - ARC) / 2;       // левый край дуги
+    var step  = ARC / (DOTS - 1);
+    var filled = Math.round(value / 100 * DOTS);
+
+    for (var i = 0; i < DOTS; i++) {
+      var val = i / (DOTS - 1) * 100;
+      var z = zoneOf(val);
+      var ang = (start + i * step) * Math.PI / 180;
+      var x = CX + R * Math.cos(ang);
+      var y = CY + R * Math.sin(ang);
+      var isOn = i < filled;
+      var isCur = i === filled - 1;
+
+      var dot = el('circle', {
+        cx: x.toFixed(2), cy: y.toFixed(2),
+        r: isCur ? 4.6 : 3.4,
+        fill: 'var(' + z.v + ')',
+        opacity: isOn ? 1 : 0.22
+      });
+      svg.appendChild(dot);
+
+      if (isCur) {
+        svg.appendChild(el('circle', {
+          cx: x.toFixed(2), cy: y.toFixed(2), r: 7.6,
+          fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1
+        }));
+      }
+    }
+  }
+
+  function drawLegend() {
+    var box = document.getElementById('legend');
+    box.innerHTML = '';
+    ZONES.forEach(function (z) {
+      var s = document.createElement('span');
+      var i = document.createElement('i');
+      i.style.background = 'var(' + z.v + ')';
+      s.appendChild(i);
+      s.appendChild(document.createTextNode(z.name));
+      box.appendChild(s);
+    });
+  }
+
+  /* ═══════════════ ГРАФИК ═══════════════
+     viewBox равен фактическому размеру блока: иначе Notion растягивает
+     координатную сетку и подписи сплющиваются на узком блоке. */
+  var PAD_L = 26, PAD_R = 8, PAD_T = 14, PAD_B = 24;
+
+  function drawPlot(rows) {
+    var svg = document.getElementById('plot');
+    var host = svg.parentNode;
+    var PW = (host && host.clientWidth) || 620;
+    var PH = (host && host.clientHeight) || 190;
+    svg.setAttribute('viewBox', '0 0 ' + PW + ' ' + PH);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var lo = 0, hi = 100;
+    var innerH = PH - PAD_T - PAD_B;
+    var innerW = PW - PAD_L - PAD_R;
+    function Y(v) { return PAD_T + innerH * (1 - (v - lo) / (hi - lo)); }
+
+    // Полосы зон — тонкой заливкой слева, чтобы график читался в тех же цветах.
+    ZONES.forEach(function (z) {
+      var yTop = Y(Math.min(z.hi + 1, 100)), yBot = Y(z.lo);
+      svg.appendChild(el('rect', {
+        x: 0, y: yTop.toFixed(2),
+        width: PAD_L - 8, height: Math.max(0, yBot - yTop).toFixed(2),
+        fill: 'var(' + z.v + ')', opacity: 0.5
+      }));
+    });
+
+    // Сетка 0 / 50 / 100
+    [0, 50, 100].forEach(function (g) {
+      svg.appendChild(el('line', {
+        x1: PAD_L, x2: PW - PAD_R, y1: Y(g).toFixed(2), y2: Y(g).toFixed(2),
+        stroke: 'var(--line)', 'stroke-width': 1
+      }));
+      var t = el('text', {
+        x: PAD_L - 11, y: (Y(g) + 3).toFixed(2),
+        'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 9
+      });
+      t.textContent = g;
+      svg.appendChild(t);
+    });
+
+    var n = rows.length;
+    if (!n) return;
+    var stepX = n > 1 ? innerW / (n - 1) : 0;
+    var X = function (i) { return n > 1 ? PAD_L + i * stepX : PAD_L + innerW / 2; };
+
+    // Линия средних
+    var d = '';
+    rows.forEach(function (r, i) {
+      d += (i ? ' L ' : 'M ') + X(i).toFixed(2) + ' ' + Y(r.avg).toFixed(2);
+    });
+    svg.appendChild(el('path', {
+      d: d, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.4,
+      'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: 0.55
+    }));
+
+    rows.forEach(function (r, i) {
+      var x = X(i);
+      // Размах утро → вечер
+      svg.appendChild(el('line', {
+        x1: x.toFixed(2), x2: x.toFixed(2),
+        y1: Y(Math.max(r.m, r.e)).toFixed(2), y2: Y(Math.min(r.m, r.e)).toFixed(2),
+        stroke: 'var(--fade)', 'stroke-width': 3, 'stroke-linecap': 'round'
+      }));
+      // Утро — контурная точка, вечер — залитая: видно, куда день двигался
+      svg.appendChild(el('circle', {
+        cx: x.toFixed(2), cy: Y(r.m).toFixed(2), r: 2.6,
+        fill: 'var(--bg)', stroke: 'var(--muted)', 'stroke-width': 1.2
+      }));
+      svg.appendChild(el('circle', {
+        cx: x.toFixed(2), cy: Y(r.e).toFixed(2), r: 2.6,
+        fill: 'var(--muted)'
+      }));
+      // Среднее за день — в цвете своей зоны
+      var z = zoneOf(r.avg);
+      svg.appendChild(el('circle', {
+        cx: x.toFixed(2), cy: Y(r.avg).toFixed(2), r: 4.4,
+        fill: 'var(' + z.v + ')'
+      }));
+      if (i === n - 1) {
+        svg.appendChild(el('circle', {
+          cx: x.toFixed(2), cy: Y(r.avg).toFixed(2), r: 7.4,
+          fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1
+        }));
+      }
+      // Подпись дня
+      var t = el('text', {
+        x: x.toFixed(2), y: (PH - 6).toFixed(2),
+        'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 9
+      });
+      t.textContent = n <= 8 ? weekday(r.d) : dayNum(r.d);
+      svg.appendChild(t);
+    });
+  }
+
+  /* ═══════════════ СБОРКА ═══════════════ */
+  function render() {
+    var rows = ENERGY.slice(-SHOW_DAYS).map(function (r) {
+      return { d: r.d, m: r.m, e: r.e, avg: (r.m + r.e) / 2 };
+    });
+
+    drawDial(RESERVE);
+    drawLegend();
+    drawPlot(rows);
+
+    var z = zoneOf(RESERVE);
+    document.getElementById('big').textContent = RESERVE;
+    var zn = document.getElementById('zoneName');
+    zn.textContent = z.name;
+    zn.style.color = 'var(' + z.v + ')';
+
+    var last = rows[rows.length - 1];
+    document.getElementById('curNow').textContent = last ? round1(last.avg) : '—';
+
+    var sum = 0;
+    rows.forEach(function (r) { sum += r.avg; });
+    document.getElementById('weekAvg').textContent = rows.length ? round1(sum / rows.length) : '—';
+
+    var since = daysBetween(LAST_SLUMP, mskToday());
+    document.getElementById('streak').textContent = spaced(since);
+
+    var delta = RESERVE - RESERVE_PREV;
+    var arrow = delta > 0 ? '↗' : (delta < 0 ? '↘' : '→');
+    document.getElementById('trend').innerHTML =
+      'Резерв <b>' + RESERVE + '</b> ' + arrow + ' ' +
+      (delta > 0 ? '+' : '') + delta + ' за неделю';
+
+    if (rows.length) {
+      var vals = [];
+      rows.forEach(function (r) { vals.push(r.m, r.e); });
+      document.getElementById('minmax').textContent =
+        'мин ' + Math.min.apply(null, vals) + ' · макс ' + Math.max.apply(null, vals);
+      document.getElementById('periodLabel').textContent =
+        rows.length + ' ' + plural(rows.length, 'день', 'дня', 'дней') +
+        ' · ' + dayNum(rows[0].d) + '.' + rows[0].d.split('-')[1] +
+        ' — ' + dayNum(last.d) + '.' + last.d.split('-')[1];
+    }
+  }
+
+  // Страховка на случай, если тема Notion разойдётся с системной.
+  var q = (location.search.match(/theme=(dark|light)/) || [])[1];
+  if (q) document.documentElement.setAttribute('data-theme', q);
+
+  render();
+  // Пересчёт редкий: меняется только счётчик дней без откиса.
+  setInterval(render, 60000);
+  // Блок Notion тянут за уголок — график должен пересчитать сетку под новый размер.
+  if (typeof addEventListener === 'function') addEventListener('resize', render);
+})();
+</script>
+</body>
+</html>
