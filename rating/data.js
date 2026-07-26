@@ -25,7 +25,7 @@ var RATING = {
         { name: 'Резерв',            value: '≈59',            score: 59 },
         { name: 'Энергия Current',   value: '54.6',           score: 55 },
         { name: 'Продуктивность дня',value: '5.08 / 10',      score: 51 },
-        { name: 'Дни откиса',        value: 'не ведётся',     score: null }
+        { name: 'Дни откиса',        value: '2 за полгода · 26 дней чисто', score: 50 }
       ]
     },
     {
