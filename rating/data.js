@@ -8,30 +8,32 @@
    - raw:   true → это не балл, а просто величина (вес, обхваты)
    - stale: true → замер устарел, в балл группы не идёт (правило свежести
             из skill rating-calc: поведение 14 дней, физика 45 дней)
+   - est:   true → это оценка Auri, а не замер (энергия, резерв). Считается
+            наравне, но помечается — чтобы впечатление не путать с данными
 
    Индекс и покрытие считаются автоматически — руками не проставлять.
    ═══════════════════════════════════════════════════════════ */
 
 var RATING = {
-  version: 'v0.1',
-  date: '26.07.2026',
-  window: 'неделя 19–25.07.2026',
-  prev: null,              // сюда положим прошлую карту, когда появится
+  version: 'v0.1.1',
+  date: '27.07.2026',
+  window: 'неделя 19–25.07.2026 (та же, пересчёт после аудита формул)',
+  prev: 41,                // индекс карты v0.1 (26.07.2026) — виджет считает дельту от него
 
   groups: [
     {
       key: 'core', name: 'Интегральные', icon: '◆',
       scales: [
-        { name: 'Резерв',            value: '≈59',            score: 59 },
-        { name: 'Энергия Current',   value: '54.6',           score: 55 },
+        { name: 'Резерв',            value: '≈59',            score: 59, est: true },
+        { name: 'Энергия Current',   value: '54.6',           score: 55, est: true },
         { name: 'Продуктивность дня',value: '5.08 / 10',      score: 51 },
-        { name: 'Дни откиса',        value: '2 за полгода · 26 дней чисто', score: 50 }
+        { name: 'Дни откиса',        value: '2 за полгода · 26 дней чисто', score: 65 }
       ]
     },
     {
       key: 'stability', name: 'Стабильность', icon: '⏱',
       scales: [
-        { name: 'Стабильность сна',  value: 'отбой 4/7 · подъём 1/7', score: 30 },
+        { name: 'Стабильность сна',  value: 'отбой 4/7 · подъём 1/7 · сон 9:39', score: 38 },
         { name: 'Ровность дня',      value: 'старт работы ±5 ч',      score: 19 },
         { name: 'Стабильность работы',value: 'нет целей недели',      score: null },
         { name: 'Настроение',        value: 'не спрашивается',        score: null }
@@ -44,7 +46,7 @@ var RATING = {
         { name: 'Без срывов',        value: '6 дней из 7',    score: 86 },
         { name: 'Регулярность',      value: '3.0 приёма/день',score: 70 },
         { name: 'Правильность еды',  value: '20% зелёных',    score: 46 },
-        { name: 'Калории',           value: '1251 ккал',      score: 46 }
+        { name: 'Калории',           value: '1251 из 2900',   score: 43 }
       ]
     },
     {
@@ -73,7 +75,9 @@ var RATING = {
       scales: [
         { name: 'Чтение',            value: '6 дней из 7',    score: 86 },
         { name: 'Экранная гигиена',  value: '3 чистых вечера',score: 43 },
-        { name: 'Осознанность',      value: 'дневник 0/7',    score: 0 },
+        // ⚠️ занижено: 27.07 выяснилось, что Саша пишет 30–50 страниц (бумага + Notion).
+        // Письменная часть стоит 0 по незнанию. Пересчитать, когда уточним частоту и место.
+        { name: 'Осознанность',      value: 'вечерняя 7/7 · письменная под пересчёт', score: 52 },
         { name: 'Музыка',            value: 'не спрашивается',score: null }
       ]
     },
@@ -138,16 +142,27 @@ function groupCounts(g) {
   return { live: live, stale: stale, empty: empty, total: g.scales.length };
 }
 
+// Веса групп (решение Саши, 27.07.2026). Простое среднее врало:
+// «Дух» — 2 незапущенные шкалы — весил столько же, сколько «Спорт» с семью,
+// и ронял индекс на 7 пунктов. Вес — про важность области, не про число шкал.
+var WEIGHTS = {
+  core: 2, stability: 2, food: 1.5, sport: 1.5, health: 1, head: 1, spirit: 0.5
+};
+
 function overall() {
   var scores = [], noSpirit = [];
   RATING.groups.forEach(function (g) {
     var s = groupScore(g);
     if (s === null) return;
-    scores.push(s);
-    if (g.key !== 'spirit') noSpirit.push(s);
+    var w = WEIGHTS[g.key] || 1;
+    scores.push({ s: s, w: w });
+    if (g.key !== 'spirit') noSpirit.push({ s: s, w: w });
   });
   var avg = function (a) {
-    return a.length ? Math.round(a.reduce(function (x, y) { return x + y; }, 0) / a.length) : null;
+    if (!a.length) return null;
+    var sum = a.reduce(function (x, i) { return x + i.s * i.w; }, 0);
+    var wsum = a.reduce(function (x, i) { return x + i.w; }, 0);
+    return Math.round(sum / wsum);
   };
   var live = 0, stale = 0, empty = 0, total = 0;
   RATING.groups.forEach(function (g) {
