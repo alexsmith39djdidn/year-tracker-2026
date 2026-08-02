@@ -76,11 +76,11 @@ var RATING = {
       key: 'health', name: 'Здоровье', icon: '＋',
       scales: [
         { name: 'Больные дни',       value: '0 за июль',      score: 100 },
-        { name: 'Вес',               value: '72 кг',          score: null, raw: true, stale: true, note: 'цель 78–80' },
+        { name: 'Вес',               value: '74.1 кг',        score: null, raw: true, note: 'цель 78–80' },
         { name: 'Замеры тела',       value: 'не мерили',      score: null },
-        // Новые шкалы от Саши (02.08.2026), собираются недельным блоком.
-        { name: 'Ногти',             value: 'сбор с 09.08',   score: null },
-        { name: 'Кожа лица',         value: 'сбор с 09.08',   score: null },
+        // Новые шкалы от Саши: первый замер пришёл раньше плана (02.08 вместо 09.08).
+        { name: 'Ногти',             value: '1/5 · грызёт постоянно', score: 20 },
+        { name: 'Кожа лица',         value: '4/5 · без воспалений',   score: 80 },
         { name: 'Витамины · анализы',value: 'ждём результаты',score: null }
       ]
     },
