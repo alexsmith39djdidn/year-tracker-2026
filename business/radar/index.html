@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ВОЛЬТА БИЗНЕС — по группам</title>
+<link rel="stylesheet" href="../base.css">
+<style>
+  body { padding: 12px 16px; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 2px; }
+  svg { display: block; width: 100%; height: auto; }
+  .gname { font-size: 11px; letter-spacing: 0.06em; fill: var(--muted); text-transform: uppercase; }
+  .gval  { font-size: 17px; font-weight: 500; }
+  .ring  { font-size: 8.5px; fill: var(--muted); letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <span class="cap">Прибор компании · 0–100 · <span id="tgt"></span></span>
+    <span class="cap" id="stamp"></span>
+  </div>
+  <svg id="radar" viewBox="0 0 680 440" preserveAspectRatio="xMidYMid meet"></svg>
+</div>
+
+<script src="../data.js"></script>
+<script>
+(function () {
+  var CX = 340, CY = 215, R = 128, LBL = R + 34;
+  var svg = document.getElementById('radar');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  var groups = RATING.groups.map(function (g) {
+    return { name: g.name, score: groupScore(g) };
+  });
+  var N = groups.length;
+
+  function el(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function pt(i, val) {
+    var a = -Math.PI / 2 + i * 2 * Math.PI / N;
+    var r = R * val / 100;
+    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+  }
+  function poly(val) {
+    var p = [];
+    for (var i = 0; i < N; i++) p.push(pt(i, val).join(','));
+    return p.join(' ');
+  }
+
+  // кольца сетки; подписи — по биссектрисе первого сектора, где нет линий
+  var half = -Math.PI / 2 + Math.PI / N;
+  [20, 40, 60, 80, 100].forEach(function (v) {
+    svg.appendChild(el('polygon', {
+      points: poly(v), fill: 'none',
+      stroke: v === 100 ? 'var(--muted)' : 'var(--line)',
+      'stroke-width': 1
+    }));
+    var rr = R * v / 100 * Math.cos(Math.PI / N);
+    var t = el('text', {
+      x: CX + rr * Math.cos(half) + 4,
+      y: CY + rr * Math.sin(half) - 3,
+      class: 'ring'
+    });
+    t.textContent = v;
+    svg.appendChild(t);
+  });
+
+  // планка «куда тянемся» — пунктиром
+  svg.appendChild(el('polygon', {
+    points: poly(TARGET), fill: 'none',
+    stroke: 'var(--muted)', 'stroke-width': 1.1,
+    'stroke-dasharray': '4 4', 'stroke-opacity': 0.85
+  }));
+
+  // оси
+  for (var i = 0; i < N; i++) {
+    var p = pt(i, 100);
+    svg.appendChild(el('line', {
+      x1: CX, y1: CY, x2: p[0], y2: p[1],
+      stroke: 'var(--line)', 'stroke-width': 1
+    }));
+  }
+
+  // фигура: только измеренные вершины, дыра остаётся дырой
+  var measured = [];
+  groups.forEach(function (g, i) { if (g.score !== null) measured.push(pt(i, g.score).join(',')); });
+
+  if (measured.length > 2) {
+    svg.appendChild(el('polygon', {
+      points: measured.join(' '),
+      fill: 'var(--ink)', 'fill-opacity': 0.1,
+      stroke: 'var(--ink)', 'stroke-width': 1.8,
+      'stroke-linejoin': 'round'
+    }));
+  }
+
+  // вершины и подписи
+  groups.forEach(function (g, i) {
+    var a = -Math.PI / 2 + i * 2 * Math.PI / N;
+    var lx = CX + LBL * Math.cos(a);
+    var ly = CY + LBL * Math.sin(a);
+    var anchor = Math.abs(Math.cos(a)) < 0.25 ? 'middle' : (Math.cos(a) > 0 ? 'start' : 'end');
+
+    if (g.score !== null) {
+      var p = pt(i, g.score);
+      svg.appendChild(el('circle', {
+        cx: p[0], cy: p[1], r: 4.6,
+        fill: colorOf(g.score), stroke: 'var(--bg)', 'stroke-width': 1.5
+      }));
+    } else {
+      var p0 = pt(i, 0);
+      svg.appendChild(el('circle', {
+        cx: p0[0], cy: p0[1], r: 3.2, fill: 'none',
+        stroke: 'var(--fade)', 'stroke-width': 1.4
+      }));
+    }
+
+    var t1 = el('text', { x: lx, y: ly - 4, class: 'gname', 'text-anchor': anchor });
+    t1.textContent = g.name;
+    svg.appendChild(t1);
+
+    var t2 = el('text', { x: lx, y: ly + 14, class: 'gval', 'text-anchor': anchor });
+    t2.setAttribute('fill', g.score === null ? 'var(--muted)' : colorOf(g.score));
+    t2.textContent = g.score === null ? '—' : g.score;
+    svg.appendChild(t2);
+  });
+
+  document.getElementById('tgt').textContent = 'пунктир — планка ' + TARGET;
+
+  var o = overall();
+  document.getElementById('stamp').textContent =
+    'индекс ' + o.index + ' · покрытие ' + o.coverage + '% · ' + RATING.version + ' ' + RATING.date;
+})();
+</script>
+</body>
+</html>

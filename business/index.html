@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Индекс ВОЛЬТЫ БИЗНЕС</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .row { display: flex; gap: 34px; align-items: center; flex-wrap: wrap; }
+
+  .big { flex: 0 0 auto; text-align: center; min-width: 190px; }
+  .big .num {
+    font-size: 92px; font-weight: 300; line-height: 0.94;
+    letter-spacing: -0.03em;
+  }
+  .big .max { font-size: 22px; color: var(--muted); font-weight: 300; }
+  .big .zone {
+    margin-top: 10px; font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; font-weight: 500;
+  }
+  .big .ttl { margin-bottom: 8px; }
+
+  .right { flex: 1 1 380px; min-width: 300px; }
+
+  .scalewrap { position: relative; }
+  .scale { display: flex; gap: 3px; align-items: flex-end; height: 34px; }
+  .scale i { flex: 1 1 0; border-radius: 1px; display: block; }
+  .target {
+    position: absolute; top: -3px; bottom: -3px; width: 1px;
+    background: var(--ink); opacity: 0.55;
+  }
+  .target b {
+    position: absolute; top: -13px; left: 3px; font-weight: 400;
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .ticks { display: flex; justify-content: space-between; margin-top: 6px; }
+
+  .marker { position: relative; height: 14px; margin-bottom: 4px; }
+  .marker .dot {
+    position: absolute; transform: translateX(-50%);
+    font-size: 10px; letter-spacing: 0.1em; font-weight: 600;
+  }
+
+  .cov { margin-top: 22px; }
+  .cells { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 7px; }
+  .cells b { width: 11px; height: 11px; border-radius: 2px; display: block; }
+  .c-live { background: var(--ink); }
+  .c-stale { border: 1px solid var(--ink); }
+  .c-empty { background: var(--fade); }
+
+  .legend { display: flex; gap: 16px; margin-top: 9px; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend em { width: 9px; height: 9px; border-radius: 2px; display: block; font-style: normal; }
+
+  .foot {
+    margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--line);
+    display: flex; gap: 26px; flex-wrap: wrap;
+  }
+  .foot div span { font-size: 15px; display: block; margin-top: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row">
+    <div class="big">
+      <div class="cap ttl">Индекс ВОЛЬТЫ БИЗНЕС</div>
+      <div><span class="num" id="num">—</span><span class="max"> / 100</span></div>
+      <div class="zone" id="zone">—</div>
+    </div>
+
+    <div class="right">
+      <div class="marker"><span class="dot" id="mk">▼</span></div>
+      <div class="scalewrap">
+        <div class="scale" id="scale"></div>
+        <div class="target" id="target"><b id="tgtxt"></b></div>
+      </div>
+      <div class="ticks">
+        <span class="cap">0 · стоим</span>
+        <span class="cap">40 · едем</span>
+        <span class="cap">65 · везёт</span>
+        <span class="cap">85 · разгон</span>
+      </div>
+
+      <div class="cov">
+        <div class="cap">Чем мы это меряем — <span id="cov"></span></div>
+        <div class="cells" id="cells"></div>
+        <div class="legend">
+          <span><em class="c-live"></em><i class="cap" id="l1"></i></span>
+          <span><em class="c-stale"></em><i class="cap" id="l2"></i></span>
+          <span><em class="c-empty"></em><i class="cap" id="l3"></i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div><span class="cap">Без «Устройства»</span><span id="f1">—</span></div>
+    <div><span class="cap">Карта</span><span id="f2">—</span></div>
+    <div><span class="cap">Окно данных</span><span id="f3">—</span></div>
+    <div><span class="cap">Динамика</span><span id="f4">—</span></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var o = overall();
+  var idx = o.index;
+
+  document.getElementById('num').textContent = idx === null ? '—' : idx;
+
+  var z = zoneOf(idx);
+  var zEl = document.getElementById('zone');
+  zEl.textContent = z ? z.name : '—';
+  zEl.style.color = colorOf(idx);
+
+  // шкала: 40 столбиков, высота растёт, цвет по зоне
+  var N = 40, scale = document.getElementById('scale');
+  for (var i = 0; i < N; i++) {
+    var v = Math.round((i + 0.5) / N * 100);
+    var b = document.createElement('i');
+    var passed = idx !== null && v <= idx;
+    b.style.height = (12 + (i / (N - 1)) * 22) + 'px';
+    b.style.background = passed ? colorOf(v) : 'var(--fade)';
+    b.style.opacity = passed ? '1' : '0.55';
+    scale.appendChild(b);
+  }
+
+  var mk = document.getElementById('mk');
+  mk.style.left = (idx === null ? 0 : idx) + '%';
+  mk.style.color = colorOf(idx);
+  mk.textContent = '▼ ' + (idx === null ? '' : idx);
+
+  document.getElementById('target').style.left = TARGET + '%';
+  document.getElementById('tgtxt').textContent = 'планка ' + TARGET;
+
+  // покрытие: одна ячейка = одна шкала
+  var cells = document.getElementById('cells');
+  function push(cls, n) {
+    for (var i = 0; i < n; i++) {
+      var b = document.createElement('b');
+      b.className = cls;
+      cells.appendChild(b);
+    }
+  }
+  push('c-live', o.live);
+  push('c-stale', o.stale);
+  push('c-empty', o.empty);
+
+  document.getElementById('cov').textContent =
+    o.live + ' из ' + o.total + ' шкал · ' + o.coverage + '%';
+  document.getElementById('l1').textContent = 'свежее — ' + o.live;
+  document.getElementById('l2').textContent = 'устарело — ' + o.stale;
+  document.getElementById('l3').textContent = 'не мерили — ' + o.empty;
+
+  document.getElementById('f1').textContent = o.indexNoSystem === null ? '—' : o.indexNoSystem;
+  document.getElementById('f2').textContent = RATING.version + ' · ' + RATING.date;
+  document.getElementById('f3').textContent = RATING.window;
+  document.getElementById('f4').textContent = RATING.prev === null
+    ? 'первый замер'
+    : (idx - RATING.prev >= 0 ? '+' : '') + (idx - RATING.prev);
+})();
+</script>
+</body>
+</html>
