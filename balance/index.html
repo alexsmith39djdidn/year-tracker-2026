@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Баланс недели — 168 часов</title>
+<style>
+:root {
+  --bg: #fff;
+  --ink: #111;
+  --fade: #d9d9d9;
+  --muted: #9a9a9a;
+  --line: #e6e6e6;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c; }
+}
+:root[data-theme="dark"] { --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c; }
+:root[data-theme="light"] { --bg: #fff; --ink: #111; --fade: #d9d9d9; --muted: #9a9a9a; --line: #e6e6e6; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  padding: 18px 16px;
+}
+.wrap { max-width: 940px; margin: 0 auto; }
+
+/* ── переключатели ── */
+.bar {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 24px; flex-wrap: wrap;
+  padding-bottom: 12px; margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.tabs { display: flex; gap: 20px; flex-wrap: wrap; }
+.units { display: flex; gap: 14px; flex: 0 0 auto; }
+.tab {
+  font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); cursor: pointer; background: none; border: 0; padding: 0;
+  font-family: inherit; transition: color .15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.on { color: var(--ink); }
+.tab.on::after {
+  content: ''; display: block; height: 1px; background: var(--ink);
+  margin-top: 4px;
+}
+
+/* ── основная строка ── */
+.row { display: flex; gap: 34px; align-items: center; }
+.left { flex: 0 0 auto; }
+.right { flex: 1 1 auto; min-width: 0; }
+
+/* ── круг ── */
+.dial { position: relative; width: 330px; height: 330px; }
+.dial svg { display: block; width: 100%; height: 100%; }
+.center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.big {
+  font-size: 56px; font-weight: 600; letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+.big-sub {
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); margin-top: 7px;
+}
+.dot-note {
+  font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-top: 3px;
+}
+
+/* ── легенда ── */
+.legend { width: 100%; }
+.lrow {
+  display: grid;
+  grid-template-columns: 13px 124px 1fr 62px;
+  align-items: center; gap: 12px;
+  padding: 6.5px 0;
+  border-bottom: 1px solid var(--line);
+}
+.lrow:last-child { border-bottom: 0; }
+.swatch { width: 11px; height: 11px; border-radius: 50%; }
+.lname {
+  font-size: 11.5px; letter-spacing: 0.02em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* полоска доли — та же величина, что и цифра, только глазами */
+.lbar { height: 3px; background: var(--fade); border-radius: 2px; overflow: hidden; }
+.lbar i { display: block; height: 100%; background: var(--ink); border-radius: 2px; opacity: 0.72; }
+/* самые светлые категории иначе теряют кружок — обводим контуром */
+.swatch.pale { box-shadow: inset 0 0 0 1px var(--muted); }
+.lval {
+  font-size: 11.5px; font-variant-numeric: tabular-nums; text-align: right;
+}
+
+.foot {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 16px; margin-top: 13px; padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 9px; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--muted);
+}
+.foot b { font-weight: 600; color: var(--ink); letter-spacing: 0.04em; }
+
+@media (max-width: 720px) {
+  .row { flex-direction: column; gap: 22px; }
+  .left { align-self: center; }
+  .dial { width: 250px; height: 250px; }
+  .big { font-size: 44px; }
+  /* иначе переключатель единиц уезжает за правый край и обрезается */
+  .bar { flex-direction: column; gap: 11px; }
+  .tabs { gap: 16px; }
+  .lrow { grid-template-columns: 12px 110px 1fr 56px; gap: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <div class="tabs" id="tabs"></div>
+    <div class="units" id="units"></div>
+  </div>
+
+  <div class="row">
+    <div class="left">
+      <div class="dial">
+        <svg id="ring" viewBox="0 0 330 330" aria-label="Баланс недели"></svg>
+        <div class="center">
+          <div class="big" id="big">168</div>
+          <div class="big-sub" id="big-sub">часов в неделе</div>
+          <div class="dot-note" id="dot-note">точка = 1 час</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="legend" id="legend"></div>
+      <div class="foot">
+        <span id="foot-period"></span>
+        <span id="foot-note"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   БАЛАНС НЕДЕЛИ — 168 часов
+   Одна точка на окружности = один час недели.
+
+   Как править: добавить неделю в WEEKS (часы по категориям).
+   Сумма по категориям должна быть ровно 168 — код проверит
+   и разложит на 168 точек без потери суммы.
+   ═══════════════════════════════════════════════════════════ */
+
+// Порядок категорий = порядок обхода круга. Плотность чернил
+// закреплена за категорией: чем «тяжелее» время, тем темнее точка.
+var CATS = [
+  { key: 'sleep', name: 'Сон',              a: 1.00 },
+  { key: 'work',  name: 'Работа',           a: 0.80 },
+  { key: 'food',  name: 'Еда',              a: 0.62 },
+  { key: 'sport', name: 'Спорт',            a: 0.50 },
+  { key: 'read',  name: 'Чтение',           a: 0.40 },
+  { key: 'home',  name: 'Быт',              a: 0.31 },
+  { key: 'rest',  name: 'Отдых и экраны',   a: 0.23 },
+  { key: 'unk',   name: 'Не учтено',        a: 0.00 }  // 0 → рисуется цветом --fade
+];
+
+var WEEKS = [
+  { id: 'A', tab: '19–25.07', period: 'неделя 19–25.07.2026',
+    note: '7 карточек из 7',
+    h: { sleep:67.5, work:36.5, food:8.65, sport:4.85, read:3.5, home:12.65, rest:4.0, unk:30.35 } },
+
+  { id: 'B', tab: '27.07–02.08', period: 'неделя 27.07–02.08.2026',
+    note: '7 из 7 · два откиса',
+    h: { sleep:62.0, work:24.23, food:10.3, sport:7.26, read:3.5, home:8.35, rest:32.35, unk:20.01 } },
+
+  { id: 'C', tab: '03–09.08', period: 'неделя 03–09.08.2026',
+    note: '2 из 7 собраны в день',
+    h: { sleep:57.33, work:48.25, food:13.08, sport:3.25, read:2.75, home:4.15, rest:6.5, unk:32.69 } },
+
+  { id: 'T', tab: 'Цель 10–16.08', period: 'цель на 10–16.08.2026',
+    note: 'план, не факт',
+    h: { sleep:56, work:45, food:14, sport:6, read:5.25, home:7, rest:10.5, unk:24.25 } }
+];
+
+var TOTAL = 168;
+var DOTS = 168;
+var current = 2;      // по умолчанию — последняя прожитая неделя
+var unit = 'h';       // 'h' — часы, 'p' — проценты
+
+var svgNS = 'http://www.w3.org/2000/svg';
+
+/* Раскладка часов на целые точки без потери суммы:
+   идём накопительным итогом и округляем границы, а не каждый кусок.
+   Так сумма кусков всегда ровно DOTS. */
+function toDots(h) {
+  var acc = 0, prev = 0, out = [];
+  for (var i = 0; i < CATS.length; i++) {
+    acc += h[CATS[i].key] || 0;
+    var edge = Math.round(acc / TOTAL * DOTS);
+    if (i === CATS.length - 1) edge = DOTS;   // страховка от накопленной погрешности
+    out.push({ cat: CATS[i], n: edge - prev });
+    prev = edge;
+  }
+  return out;
+}
+
+function fmt(n) {
+  var r = Math.round(n * 10) / 10;
+  return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)).replace('.', ',');
+}
+
+function drawRing(parts) {
+  var svg = document.getElementById('ring');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  var cx = 165, cy = 165, R = 143;
+  var idx = 0;
+
+  for (var p = 0; p < parts.length; p++) {
+    var part = parts[p];
+    for (var k = 0; k < part.n; k++) {
+      // старт сверху, обход по часовой
+      var ang = (idx / DOTS) * Math.PI * 2 - Math.PI / 2;
+      var c = document.createElementNS(svgNS, 'circle');
+      c.setAttribute('cx', (cx + Math.cos(ang) * R).toFixed(2));
+      c.setAttribute('cy', (cy + Math.sin(ang) * R).toFixed(2));
+      c.setAttribute('r', 3.4);
+      if (part.cat.a === 0) {
+        c.setAttribute('fill', 'var(--fade)');
+      } else {
+        c.setAttribute('fill', 'var(--ink)');
+        c.setAttribute('opacity', part.cat.a.toFixed(2));
+      }
+      svg.appendChild(c);
+      idx++;
+    }
+  }
+}
+
+function drawLegend(parts, week) {
+  var box = document.getElementById('legend');
+  box.innerHTML = '';
+
+  // в легенде — по убыванию доли, чтобы главное было сверху
+  var sorted = parts.slice().sort(function (a, b) {
+    return (week.h[b.cat.key] || 0) - (week.h[a.cat.key] || 0);
+  });
+
+  var max = sorted.length ? (week.h[sorted[0].cat.key] || 1) : 1;
+
+  for (var i = 0; i < sorted.length; i++) {
+    var cat = sorted[i].cat;
+    var hours = week.h[cat.key] || 0;
+    var pct = hours / TOTAL * 100;
+
+    var row = document.createElement('div');
+    row.className = 'lrow';
+
+    var sw = document.createElement('div');
+    sw.className = 'swatch' + (cat.a < 0.35 ? ' pale' : '');
+    if (cat.a === 0) {
+      sw.style.background = 'var(--fade)';
+    } else {
+      sw.style.background = 'var(--ink)';
+      sw.style.opacity = cat.a;
+    }
+
+    var nm = document.createElement('div');
+    nm.className = 'lname';
+    nm.textContent = cat.name;
+
+    // Полоска — доля этой категории относительно самой крупной.
+    // Плотность у всех одна: полоска несёт ВЕЛИЧИНУ, а категорию несёт кружок слева.
+    // Разная плотность делала третью по размеру категорию («Не учтено») нечитаемой.
+    var bar = document.createElement('div');
+    bar.className = 'lbar';
+    var fill = document.createElement('i');
+    fill.style.width = (hours / max * 100).toFixed(1) + '%';
+    bar.appendChild(fill);
+
+    var val = document.createElement('div');
+    val.className = 'lval';
+    val.textContent = (unit === 'h')
+      ? fmt(hours) + ' ч'
+      : pct.toFixed(1).replace('.', ',') + '%';
+
+    row.appendChild(sw); row.appendChild(nm); row.appendChild(bar); row.appendChild(val);
+    box.appendChild(row);
+  }
+
+  document.getElementById('foot-period').innerHTML = week.period;
+  document.getElementById('foot-note').innerHTML = week.note;
+}
+
+function drawCenter() {
+  document.getElementById('big').textContent      = (unit === 'h') ? '168' : '100%';
+  document.getElementById('big-sub').textContent  = (unit === 'h') ? 'часов в неделе' : 'недели целиком';
+  document.getElementById('dot-note').textContent = (unit === 'h') ? 'точка = 1 час' : 'точка = 0,6% недели';
+}
+
+function drawUnits() {
+  var box = document.getElementById('units');
+  box.innerHTML = '';
+  var opts = [ ['h', 'Часы'], ['p', 'Проценты'] ];
+  for (var i = 0; i < opts.length; i++) {
+    (function (o) {
+      var b = document.createElement('button');
+      b.className = 'tab' + (unit === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function () { unit = o[0]; render(); };
+      box.appendChild(b);
+    })(opts[i]);
+  }
+}
+
+function drawTabs() {
+  var box = document.getElementById('tabs');
+  box.innerHTML = '';
+  for (var i = 0; i < WEEKS.length; i++) {
+    (function (n) {
+      var b = document.createElement('button');
+      b.className = 'tab' + (n === current ? ' on' : '');
+      b.textContent = WEEKS[n].tab;
+      b.onclick = function () { current = n; render(); };
+      box.appendChild(b);
+    })(i);
+  }
+}
+
+function render() {
+  var week = WEEKS[current];
+  var parts = toDots(week.h);
+  drawTabs();
+  drawUnits();
+  drawCenter();
+  drawRing(parts);
+  drawLegend(parts, week);
+}
+
+/* страховка темы: системная тема Mac и тема Notion могут разойтись */
+(function () {
+  var m = location.search.match(/theme=(dark|light)/);
+  if (m) document.documentElement.setAttribute('data-theme', m[1]);
+})();
+
+/* Стартовый вид можно зафиксировать в адресе — удобно, когда в Notion
+   нужен сразу конкретный срез: ?week=T&unit=p */
+(function () {
+  var u = location.search.match(/unit=(h|p)/);
+  if (u) unit = u[1];
+  var w = location.search.match(/week=([A-Z])/);
+  if (w) {
+    for (var i = 0; i < WEEKS.length; i++) {
+      if (WEEKS[i].id === w[1]) { current = i; break; }
+    }
+  }
+})();
+
+render();
+</script>
+</body>
+</html>
