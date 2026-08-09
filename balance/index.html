@@ -5,18 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Баланс недели — 168 часов</title>
 <style>
+/* Цвет здесь — носитель смысла, а не украшение: категорий восемь, и в
+   градациях серого круг просто не читался (проверено на первой версии).
+   Палитра приглушённая, под тон Notion. Каркас, цифры и подписи — чёрно-белые. */
 :root {
   --bg: #fff;
   --ink: #111;
   --fade: #d9d9d9;
   --muted: #9a9a9a;
   --line: #e6e6e6;
+
+  --c-sleep: #4f6194;  /* сон — ночная синь */
+  --c-work:  #b5763f;  /* работа — охра */
+  --c-food:  #6b8f5e;  /* еда — оливковый */
+  --c-sport: #b25a52;  /* спорт — терракота */
+  --c-read:  #7a6296;  /* чтение — пыльный фиолетовый */
+  --c-home:  #5b8a8f;  /* быт — серо-бирюзовый */
+  --c-rest:  #c2a15c;  /* отдых — песочный */
+  --c-unk:   #cfcfcf;  /* не учтено — намеренно серое */
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c; }
+  :root {
+    --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c;
+    --c-sleep: #8195c9; --c-work: #dc9a5d; --c-food: #93ba85; --c-sport: #d8867c;
+    --c-read: #a78ac4; --c-home: #85b5ba; --c-rest: #dcc084; --c-unk: #454545;
+  }
 }
-:root[data-theme="dark"] { --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c; }
-:root[data-theme="light"] { --bg: #fff; --ink: #111; --fade: #d9d9d9; --muted: #9a9a9a; --line: #e6e6e6; }
+:root[data-theme="dark"] {
+  --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c;
+  --c-sleep: #8195c9; --c-work: #dc9a5d; --c-food: #93ba85; --c-sport: #d8867c;
+  --c-read: #a78ac4; --c-home: #85b5ba; --c-rest: #dcc084; --c-unk: #454545;
+}
+:root[data-theme="light"] {
+  --bg: #fff; --ink: #111; --fade: #d9d9d9; --muted: #9a9a9a; --line: #e6e6e6;
+  --c-sleep: #4f6194; --c-work: #b5763f; --c-food: #6b8f5e; --c-sport: #b25a52;
+  --c-read: #7a6296; --c-home: #5b8a8f; --c-rest: #c2a15c; --c-unk: #cfcfcf;
+}
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
@@ -92,9 +116,7 @@ body {
 }
 /* полоска доли — та же величина, что и цифра, только глазами */
 .lbar { height: 3px; background: var(--fade); border-radius: 2px; overflow: hidden; }
-.lbar i { display: block; height: 100%; background: var(--ink); border-radius: 2px; opacity: 0.72; }
-/* самые светлые категории иначе теряют кружок — обводим контуром */
-.swatch.pale { box-shadow: inset 0 0 0 1px var(--muted); }
+.lbar i { display: block; height: 100%; border-radius: 2px; }
 .lval {
   font-size: 11.5px; font-variant-numeric: tabular-nums; text-align: right;
 }
@@ -164,14 +186,14 @@ body {
 // Порядок категорий = порядок обхода круга. Плотность чернил
 // закреплена за категорией: чем «тяжелее» время, тем темнее точка.
 var CATS = [
-  { key: 'sleep', name: 'Сон',              a: 1.00 },
-  { key: 'work',  name: 'Работа',           a: 0.80 },
-  { key: 'food',  name: 'Еда',              a: 0.62 },
-  { key: 'sport', name: 'Спорт',            a: 0.50 },
-  { key: 'read',  name: 'Чтение',           a: 0.40 },
-  { key: 'home',  name: 'Быт',              a: 0.31 },
-  { key: 'rest',  name: 'Отдых и экраны',   a: 0.23 },
-  { key: 'unk',   name: 'Не учтено',        a: 0.00 }  // 0 → рисуется цветом --fade
+  { key: 'sleep', name: 'Сон',            c: 'var(--c-sleep)' },
+  { key: 'work',  name: 'Работа',         c: 'var(--c-work)'  },
+  { key: 'food',  name: 'Еда',            c: 'var(--c-food)'  },
+  { key: 'sport', name: 'Спорт',          c: 'var(--c-sport)' },
+  { key: 'read',  name: 'Чтение',         c: 'var(--c-read)'  },
+  { key: 'home',  name: 'Быт',            c: 'var(--c-home)'  },
+  { key: 'rest',  name: 'Отдых и экраны', c: 'var(--c-rest)'  },
+  { key: 'unk',   name: 'Не учтено',      c: 'var(--c-unk)'   }
 ];
 
 var WEEKS = [
@@ -234,13 +256,8 @@ function drawRing(parts) {
       var c = document.createElementNS(svgNS, 'circle');
       c.setAttribute('cx', (cx + Math.cos(ang) * R).toFixed(2));
       c.setAttribute('cy', (cy + Math.sin(ang) * R).toFixed(2));
-      c.setAttribute('r', 3.4);
-      if (part.cat.a === 0) {
-        c.setAttribute('fill', 'var(--fade)');
-      } else {
-        c.setAttribute('fill', 'var(--ink)');
-        c.setAttribute('opacity', part.cat.a.toFixed(2));
-      }
+      c.setAttribute('r', 3.6);
+      c.setAttribute('fill', part.cat.c);
       svg.appendChild(c);
       idx++;
     }
@@ -267,13 +284,8 @@ function drawLegend(parts, week) {
     row.className = 'lrow';
 
     var sw = document.createElement('div');
-    sw.className = 'swatch' + (cat.a < 0.35 ? ' pale' : '');
-    if (cat.a === 0) {
-      sw.style.background = 'var(--fade)';
-    } else {
-      sw.style.background = 'var(--ink)';
-      sw.style.opacity = cat.a;
-    }
+    sw.className = 'swatch';
+    sw.style.background = cat.c;
 
     var nm = document.createElement('div');
     nm.className = 'lname';
@@ -286,6 +298,7 @@ function drawLegend(parts, week) {
     bar.className = 'lbar';
     var fill = document.createElement('i');
     fill.style.width = (hours / max * 100).toFixed(1) + '%';
+    fill.style.background = cat.c;
     bar.appendChild(fill);
 
     var val = document.createElement('div');
