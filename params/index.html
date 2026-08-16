@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Динамика параметров — ВОЛЬТА</title>
+<style>
+/* Каркас чёрно-белый, как во всех наших виджетах. Цветом отмечается только
+   зона балла у последней точки — она единственная, что надо считывать мгновенно.
+   Прочерк (не мерили) рисуется полой точкой и разрывом линии: пустое место
+   должно быть видно так же ясно, как провал, иначе дыра в данных читается
+   как ровная линия. */
+:root {
+  --bg: #fff;
+  --ink: #111;
+  --fade: #d9d9d9;
+  --muted: #9a9a9a;
+  --line: #e6e6e6;
+
+  --z-red:    #b25a52;
+  --z-orange: #c2a15c;
+  --z-yellow: #8a9a52;
+  --z-green:  #6b8f5e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c;
+    --z-red: #d8867c; --z-orange: #dcc084; --z-yellow: #b3c47a; --z-green: #93ba85;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #191919; --ink: #e9e9e9; --fade: #3a3a3a; --muted: #7d7d7d; --line: #2c2c2c;
+  --z-red: #d8867c; --z-orange: #dcc084; --z-yellow: #b3c47a; --z-green: #93ba85;
+}
+:root[data-theme="light"] {
+  --bg: #fff; --ink: #111; --fade: #d9d9d9; --muted: #9a9a9a; --line: #e6e6e6;
+  --z-red: #b25a52; --z-orange: #c2a15c; --z-yellow: #8a9a52; --z-green: #6b8f5e;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  padding: 18px 16px;
+}
+.wrap { max-width: 940px; margin: 0 auto; }
+
+.bar {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 24px; flex-wrap: wrap;
+  padding-bottom: 12px; margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.tabs { display: flex; gap: 18px; flex-wrap: wrap; }
+.tab {
+  font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); cursor: pointer; background: none; border: 0; padding: 0;
+  font-family: inherit; transition: color .15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.on { color: var(--ink); }
+.tab.on::after { content: ''; display: block; height: 1px; background: var(--ink); margin-top: 4px; }
+
+/* ── шапка с индексом ── */
+.head { display: flex; align-items: flex-end; gap: 26px; margin-bottom: 22px; flex-wrap: wrap; }
+.idx { display: flex; align-items: baseline; gap: 10px; }
+.idx b { font-size: 44px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+.idx .d { font-size: 13px; color: var(--muted); }
+.cap { font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.headline { flex: 1 1 220px; min-width: 200px; }
+
+/* ── таблица шкал ── */
+.grp { margin: 0 0 6px; }
+.grp-h {
+  display: flex; align-items: baseline; gap: 10px;
+  margin: 20px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+.grp-h .n { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+.grp-h .s { font-size: 11px; color: var(--muted); }
+
+.r {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.4fr) 148px 56px 54px;
+  align-items: center; gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+.r:last-child { border-bottom: 0; }
+.r .nm { font-size: 12.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r .nm i { font-style: normal; color: var(--muted); font-size: 10px; margin-left: 5px; }
+.r .sp { height: 30px; }
+.r .sp svg { display: block; width: 100%; height: 30px; overflow: visible; }
+.r .now { font-size: 14px; font-weight: 600; text-align: right; letter-spacing: -0.01em; }
+.r .now.none { color: var(--muted); font-weight: 400; font-size: 12px; }
+.r .dl { font-size: 11px; text-align: right; color: var(--muted); }
+.r .dl.up { color: var(--z-green); }
+.r .dl.dn { color: var(--z-red); }
+.r.group-row { background: transparent; }
+.r.group-row .nm { font-weight: 600; }
+
+.foot {
+  margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--line);
+  font-size: 10.5px; color: var(--muted); line-height: 1.6;
+}
+.foot b { color: var(--ink); font-weight: 500; }
+
+@media (max-width: 620px) {
+  .r { grid-template-columns: minmax(90px, 1.2fr) 110px 46px 44px; gap: 8px; }
+  .r .nm { font-size: 11.5px; }
+  .idx b { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <div class="tabs" id="tabs"></div>
+    <div class="cap" id="win"></div>
+  </div>
+
+  <div class="head">
+    <div>
+      <div class="cap">Индекс ВОЛЬТЫ</div>
+      <div class="idx"><b id="idxv">—</b><span class="d" id="idxd"></span></div>
+    </div>
+    <div class="headline">
+      <div class="cap" style="margin-bottom:6px">по замерам</div>
+      <div id="idxspark"></div>
+    </div>
+  </div>
+
+  <div id="body"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var P = window.PARAM_HISTORY;
+  var svgNS = 'http://www.w3.org/2000/svg';
+
+  var ZONES = [
+    { lo: 0,  hi: 39,  v: '--z-red'    },
+    { lo: 40, hi: 64,  v: '--z-orange' },
+    { lo: 65, hi: 84,  v: '--z-yellow' },
+    { lo: 85, hi: 100, v: '--z-green'  }
+  ];
+  function zoneVar(v) {
+    if (v === null || v === undefined) return '--muted';
+    for (var i = 0; i < ZONES.length; i++) if (v >= ZONES[i].lo && v <= ZONES[i].hi) return ZONES[i].v;
+    return '--z-green';
+  }
+
+  function el(t, cls, txt) {
+    var e = document.createElement(t);
+    if (cls) e.className = cls;
+    if (txt !== undefined) e.textContent = txt;
+    return e;
+  }
+
+  /* Спарклайн. Шкала фиксированная 0–100 — иначе каждая строка растягивается
+     по своему размаху, и шкала, дрогнувшая на два пункта, выглядит как обвал. */
+  function spark(vals, w, h) {
+    w = w || 148; h = h || 30;
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    svg.setAttribute('preserveAspectRatio', 'none');
+
+    var n = vals.length;
+    var pad = 4;
+    var stepX = n > 1 ? (w - pad * 2) / (n - 1) : 0;
+    function X(i) { return pad + i * stepX; }
+    function Y(v) { return h - 3 - (v / 100) * (h - 6); }
+
+    // базовая линия — та же для всех строк, чтобы взгляд не сбивался
+    var base = document.createElementNS(svgNS, 'line');
+    base.setAttribute('x1', 0); base.setAttribute('x2', w);
+    base.setAttribute('y1', h - 3); base.setAttribute('y2', h - 3);
+    base.setAttribute('stroke', 'var(--line)');
+    base.setAttribute('stroke-width', '1');
+    svg.appendChild(base);
+
+    // ломаная кусками: прочерк рвёт линию, а не соединяет через дыру
+    var seg = [], segs = [];
+    for (var i = 0; i < n; i++) {
+      if (vals[i] === null || vals[i] === undefined) { if (seg.length) { segs.push(seg); seg = []; } }
+      else seg.push(i);
+    }
+    if (seg.length) segs.push(seg);
+
+    segs.forEach(function (s) {
+      if (s.length < 2) return;
+      var d = s.map(function (i, k) { return (k ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(vals[i]).toFixed(1); }).join(' ');
+      var p = document.createElementNS(svgNS, 'path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', 'var(--fade)');
+      p.setAttribute('stroke-width', '1.5');
+      p.setAttribute('stroke-linecap', 'round');
+      p.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(p);
+    });
+
+    for (var j = 0; j < n; j++) {
+      var v = vals[j], last = (j === n - 1);
+      var c = document.createElementNS(svgNS, 'circle');
+      c.setAttribute('cx', X(j).toFixed(1));
+      if (v === null || v === undefined) {
+        // не мерили — полая точка на базовой линии
+        c.setAttribute('cy', (h - 3).toFixed(1));
+        c.setAttribute('r', '2');
+        c.setAttribute('fill', 'var(--bg)');
+        c.setAttribute('stroke', 'var(--fade)');
+        c.setAttribute('stroke-width', '1');
+      } else {
+        c.setAttribute('cy', Y(v).toFixed(1));
+        c.setAttribute('r', last ? '3.2' : '2.2');
+        c.setAttribute('fill', last ? 'var(' + zoneVar(v) + ')' : 'var(--fade)');
+      }
+      var t = document.createElementNS(svgNS, 'title');
+      t.textContent = P.dates[j] + ' · ' + (v === null || v === undefined ? 'не мерили' : v);
+      c.appendChild(t);
+      svg.appendChild(c);
+    }
+    return svg;
+  }
+
+  function lastMeasured(vals) {
+    for (var i = vals.length - 1; i >= 0; i--) if (vals[i] !== null && vals[i] !== undefined) return { v: vals[i], i: i };
+    return null;
+  }
+  function deltaOf(vals) {
+    var last = vals[vals.length - 1];
+    if (last === null || last === undefined) return null;   // не мерили — дельты нет
+    for (var i = vals.length - 2; i >= 0; i--) if (vals[i] !== null && vals[i] !== undefined) return last - vals[i];
+    return null;
+  }
+
+  function rowFor(name, vals, opts) {
+    opts = opts || {};
+    var r = el('div', 'r' + (opts.group ? ' group-row' : ''));
+
+    var nm = el('div', 'nm');
+    nm.appendChild(document.createTextNode(name));
+    if (opts.flag) { var i2 = el('i', null, opts.flag); nm.appendChild(i2); }
+    r.appendChild(nm);
+
+    var sp = el('div', 'sp');
+    sp.appendChild(spark(vals));
+    r.appendChild(sp);
+
+    var last = vals[vals.length - 1];
+    var now = el('div', 'now' + (last === null || last === undefined ? ' none' : ''));
+    now.textContent = (last === null || last === undefined) ? '—' : last;
+    if (last !== null && last !== undefined) now.style.color = 'var(' + zoneVar(last) + ')';
+    r.appendChild(now);
+
+    var d = deltaOf(vals);
+    var dl = el('div', 'dl' + (d > 0 ? ' up' : d < 0 ? ' dn' : ''));
+    dl.textContent = (d === null) ? '' : (d > 0 ? '+' + d : String(d));
+    r.appendChild(dl);
+
+    return r;
+  }
+
+  /* ── вкладки: все группы + каждая по отдельности ── */
+  var groups = Object.keys(P.groups);
+  var view = 'ALL';
+
+  function render() {
+    var body = document.getElementById('body');
+    body.innerHTML = '';
+
+    groups.forEach(function (g) {
+      if (view !== 'ALL' && view !== g) return;
+      var scales = Object.keys(P.scales).filter(function (n) { return P.scaleGroup[n] === g; });
+      if (!scales.length) return;
+
+      var box = el('div', 'grp');
+      var h = el('div', 'grp-h');
+      h.appendChild(el('span', 'n', g));
+      var gv = P.groups[g];
+      var gl = gv[gv.length - 1];
+      var gd = deltaOf(gv);
+      h.appendChild(el('span', 's',
+        (gl === null || gl === undefined ? 'группа без балла' : 'балл ' + gl) +
+        (gd === null ? '' : ' · ' + (gd > 0 ? '+' + gd : gd))));
+      box.appendChild(h);
+
+      box.appendChild(rowFor('балл группы', gv, { group: true }));
+
+      scales.forEach(function (n) {
+        var s = P.scales[n];
+        var flags = [];
+        if (s.est[s.est.length - 1]) flags.push('оценка');
+        if (s.stale[s.stale.length - 1]) flags.push('не в балле');
+        box.appendChild(rowFor(n, s.scores, { flag: flags.length ? flags.join(' · ') : null }));
+      });
+
+      body.appendChild(box);
+    });
+  }
+
+  function buildTabs() {
+    var t = document.getElementById('tabs');
+    var list = [{ id: 'ALL', name: 'Все' }].concat(groups.map(function (g) { return { id: g, name: g }; }));
+    list.forEach(function (o) {
+      var b = el('button', 'tab' + (o.id === view ? ' on' : ''), o.name);
+      b.onclick = function () {
+        view = o.id;
+        Array.prototype.forEach.call(t.children, function (c) { c.className = 'tab'; });
+        b.className = 'tab on';
+        render();
+      };
+      t.appendChild(b);
+    });
+  }
+
+  // шапка
+  var n = P.dates.length;
+  var idx = P.index;
+  document.getElementById('idxv').textContent = idx[n - 1];
+  var id = deltaOf(idx);
+  document.getElementById('idxd').textContent =
+    (id === null ? '' : (id > 0 ? '+' + id : id) + ' к прошлому замеру') +
+    ' · покрытие ' + P.coverage[n - 1] + '%';
+  document.getElementById('idxv').style.color = 'var(' + zoneVar(idx[n - 1]) + ')';
+  document.getElementById('idxspark').appendChild(spark(idx, 240, 34));
+  document.getElementById('win').textContent = P.dates[n - 1] + ' · ' + P.versions[n - 1];
+
+  var foot = document.getElementById('foot');
+  foot.innerHTML =
+    '<b>' + n + ' замера</b> · ' + P.dates[0] + ' → ' + P.dates[n - 1] +
+    '. Шкала у всех строк одна, 0–100 — иначе дрожь на два пункта выглядела бы обвалом.<br>' +
+    'Полая точка на базовой линии — <b>не мерили</b>, это не ноль; линия в таком месте рвётся. ' +
+    '«оценка» — балл поставлен Auri по словам, а не замерен. «не в балле» — шкала есть, но в балл группы не идёт (устарела или собрана по смещённой выборке).';
+
+  buildTabs();
+  render();
+})();
+</script>
+</body>
+</html>
