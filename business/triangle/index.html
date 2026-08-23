@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Треугольник — ВОЛЬТА БИЗНЕС</title>
+<link rel="stylesheet" href="../base.css">
+<style>
+  .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 4px; }
+  .ttl { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; }
+  .sub { margin-top: 3px; }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 2px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend em { width: 14px; height: 2px; display: block; font-style: normal; background: var(--ink); }
+  .legend em.dash { background: none; border-top: 1px dashed var(--muted); height: 0; }
+
+  .chart { width: 100%; overflow-x: auto; }
+  svg { display: block; width: 100%; height: auto; max-width: 100%; }
+
+  .verdict {
+    margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line);
+    display: flex; gap: 30px; flex-wrap: wrap;
+  }
+  .verdict div span { font-size: 15px; display: block; margin-top: 3px; }
+  .verdict div span.small { font-size: 12px; color: var(--muted); }
+
+  .stock { margin-top: 18px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 4px; }
+  .stock .rows { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .stock .r { display: flex; justify-content: space-between; gap: 14px; font-size: 12px; align-items: baseline; }
+  .stock .r i { font-style: normal; color: var(--muted); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .stock .r b { font-weight: 500; }
+  .stock .sum { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; }
+
+  .foot { margin-top: 14px; font-size: 10px; color: var(--muted); line-height: 1.55; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div>
+      <div class="ttl">Треугольник недели</div>
+      <div class="cap sub">Куда нас движут наши действия</div>
+    </div>
+    <div style="text-align:right">
+      <div class="cap">Модель</div>
+      <div style="font-size:13px" id="ver">—</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="cap">↑ вверх — внешнее, двигает</i></span>
+    <span><i class="cap">↙ влево — улучшение, растит</i></span>
+    <span><i class="cap">↘ вправо — внутреннее, держит</i></span>
+    <span><em class="dash"></em><i class="cap">как шёл нос неделя за неделей</i></span>
+  </div>
+
+  <div class="chart">
+    <svg id="svg" viewBox="0 0 760 262" role="img" aria-label="График треугольников по неделям"></svg>
+    <svg id="pathsvg" viewBox="0 0 760 96" role="img" aria-label="Накопленный путь по неделям"></svg>
+  </div>
+
+  <div class="verdict">
+    <div><span class="cap">Путь накоплен</span><span id="v1">—</span><span class="small" id="v1s"></span></div>
+    <div><span class="cap">Движение недели</span><span id="v2">—</span><span class="small" id="v2s"></span></div>
+    <div><span class="cap">Объём работы</span><span id="v3">—</span><span class="small" id="v3s"></span></div>
+    <div><span class="cap">Доля наружу</span><span id="v4">—</span><span class="small" id="v4s"></span></div>
+  </div>
+
+  <div class="stock" id="stockBox">
+    <div class="cap">Готово, но не выпущено — склад</div>
+    <div class="rows" id="stockRows"></div>
+    <div class="sum"><b id="stockSum"></b><i class="cap" id="stockNote"></i></div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+
+</div>
+
+<script src="../data.js"></script>
+<script>
+(function () {
+  var W = TRIANGLE.weeks;
+  var svg = document.getElementById('svg');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(n, a) {
+    var e = document.createElementNS(NS, n);
+    for (var k in a) e.setAttribute(k, a[k]);
+    return e;
+  }
+
+  /* ─── геометрия ────────────────────────────────────────────
+     Вершина = луч из центра, длина луча пропорциональна весу области.
+     Внешнее смотрит вверх: чем выше нос, тем сильнее неделя двигала.
+     Ноль наружу схлопывает нос в центр — треугольник теряет вершину. */
+  var K = 2.9;                       // px на единицу веса
+  var CY = 112;
+  var STEP = 760 / W.length;
+  var ANG = { outer: -90, better: 150, inner: 30 };
+
+  function pt(cx, cy, w, key) {
+    var a = ANG[key] * Math.PI / 180;
+    var r = w * K;
+    return [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+  }
+
+  var path = triPath();
+  var noses = [];
+
+  W.forEach(function (w, i) {
+    var cx = STEP * (i + 0.5);
+    var total = w.inner + w.better + w.outer;
+    var z = moveZone(w.outer);
+
+    var pO = pt(cx, CY, w.outer,  'outer');
+    var pB = pt(cx, CY, w.better, 'better');
+    var pI = pt(cx, CY, w.inner,  'inner');
+    noses.push(pO);
+
+    // тонкие оси-направляющие, одинаковые у всех недель — чтобы форму
+    // читать глазом, а не гадать
+    ['outer', 'better', 'inner'].forEach(function (k) {
+      var g = pt(cx, CY, 26, k);
+      svg.appendChild(el('line', {
+        x1: cx, y1: CY, x2: g[0], y2: g[1],
+        stroke: 'var(--line)', 'stroke-width': 1
+      }));
+    });
+
+    // сам треугольник
+    svg.appendChild(el('polygon', {
+      points: pO.join(',') + ' ' + pB.join(',') + ' ' + pI.join(','),
+      fill: 'var(--ink)', 'fill-opacity': 0.07,
+      stroke: 'var(--ink)', 'stroke-width': 1.4, 'stroke-linejoin': 'round'
+    }));
+
+    // нос — точка внешнего, цветом зоны движения
+    svg.appendChild(el('circle', {
+      cx: pO[0], cy: pO[1], r: w.outer === 0 ? 4.5 : 4,
+      fill: z.color
+    }));
+    if (w.outer === 0) {
+      svg.appendChild(el('circle', {
+        cx: pO[0], cy: pO[1], r: 9,
+        fill: 'none', stroke: z.color, 'stroke-width': 1, 'stroke-dasharray': '2 2'
+      }));
+    }
+
+    // подписи весов у двух нижних вершин
+    function tag(p, val, anchor, dx, dy) {
+      var t = el('text', {
+        x: p[0] + dx, y: p[1] + dy, 'text-anchor': anchor,
+        fill: 'var(--muted)', 'font-size': 10
+      });
+      t.textContent = val;
+      svg.appendChild(t);
+    }
+    tag(pB, w.better, 'end', -6, 4);
+    tag(pI, w.inner, 'start', 6, 4);
+
+    // значение движения над носом
+    var mv = el('text', {
+      x: pO[0], y: pO[1] - 14, 'text-anchor': 'middle',
+      fill: z.color, 'font-size': 15, 'font-weight': 500
+    });
+    mv.textContent = w.outer;
+    svg.appendChild(mv);
+
+    // подпись недели
+    var lb = el('text', {
+      x: cx, y: 206, 'text-anchor': 'middle',
+      fill: 'var(--ink)', 'font-size': 12
+    });
+    lb.textContent = w.label;
+    svg.appendChild(lb);
+
+    var sb = el('text', {
+      x: cx, y: 222, 'text-anchor': 'middle',
+      fill: 'var(--muted)', 'font-size': 10, 'letter-spacing': '0.08em'
+    });
+    sb.textContent = 'всего ' + total + ' · путь ' + path[i];
+    svg.appendChild(sb);
+
+    var nt = el('text', {
+      x: cx, y: 239, 'text-anchor': 'middle',
+      fill: z.color, 'font-size': 10
+    });
+    nt.textContent = w.top;
+    svg.appendChild(nt);
+  });
+
+  // линия по носам — как шла неделя за неделей
+  var d = noses.map(function (p, i) { return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(' ');
+  var line = el('path', {
+    d: d, fill: 'none', stroke: 'var(--muted)',
+    'stroke-width': 1.4, 'stroke-dasharray': '5 4'
+  });
+  svg.insertBefore(line, svg.firstChild);
+
+  // базовая линия «ноль наружу»
+  svg.insertBefore(el('line', {
+    x1: 12, y1: CY, x2: 748, y2: CY,
+    stroke: 'var(--line)', 'stroke-width': 1, 'stroke-dasharray': '3 4'
+  }), svg.firstChild);
+
+  var zt = el('text', { x: 12, y: CY - 6, fill: 'var(--muted)', 'font-size': 9, 'letter-spacing': '0.14em' });
+  zt.textContent = 'УРОВЕНЬ НУЛЯ';
+  svg.appendChild(zt);
+
+  /* ─── накопленный путь: главная шкала модели ─────────────── */
+  (function () {
+    var ps = document.getElementById('pathsvg');
+    var maxP = Math.max.apply(null, path.concat([10]));
+    var Y0 = 74, H = 44;
+    var y = function (v) { return Y0 - v / maxP * H; };
+
+    ps.appendChild(el('line', {
+      x1: 12, y1: Y0, x2: 748, y2: Y0,
+      stroke: 'var(--line)', 'stroke-width': 1
+    }));
+    var cap = el('text', { x: 12, y: 14, fill: 'var(--muted)', 'font-size': 9, 'letter-spacing': '0.14em' });
+    cap.textContent = 'ПУТЬ — ДВИЖЕНИЕ, НАКОПЛЕННОЕ ПО НЕДЕЛЯМ';
+    ps.appendChild(cap);
+
+    var pts = path.map(function (v, i) { return [STEP * (i + 0.5), y(v)]; });
+    ps.appendChild(el('path', {
+      d: pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(' '),
+      fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2
+    }));
+    pts.forEach(function (p, i) {
+      var flat = i > 0 && path[i] === path[i - 1];
+      ps.appendChild(el('circle', {
+        cx: p[0], cy: p[1], r: 4,
+        fill: flat ? 'var(--z-red)' : 'var(--ink)'
+      }));
+      var t = el('text', {
+        x: p[0], y: p[1] - 11, 'text-anchor': 'middle',
+        fill: flat ? 'var(--z-red)' : 'var(--ink)', 'font-size': 13, 'font-weight': 500
+      });
+      t.textContent = path[i];
+      ps.appendChild(t);
+      if (flat) {
+        var f = el('text', {
+          x: p[0], y: Y0 + 15, 'text-anchor': 'middle',
+          fill: 'var(--z-red)', 'font-size': 10
+        });
+        f.textContent = 'не сдвинулся';
+        ps.appendChild(f);
+      }
+    });
+  })();
+
+  /* ─── цифры под графиком ─────────────────────────────────── */
+  var last = W[W.length - 1];
+  var prev = W[W.length - 2];
+  var lastTotal = last.inner + last.better + last.outer;
+  var prevTotal = prev.inner + prev.better + prev.outer;
+  var zl = moveZone(last.outer);
+
+  document.getElementById('ver').textContent = 'Треугольник ' + TRIANGLE.version + ' · ' + TRIANGLE.date;
+
+  document.getElementById('v1').textContent = path[path.length - 1];
+  var grew = path[path.length - 1] - path[path.length - 2];
+  document.getElementById('v1s').textContent = grew === 0 ? 'за неделю не сдвинулся' : '+' + grew + ' за неделю';
+
+  var v2 = document.getElementById('v2');
+  v2.textContent = last.outer;
+  v2.style.color = zl.color;
+  document.getElementById('v2s').textContent = zl.name + ' · было ' + prev.outer;
+
+  document.getElementById('v3').textContent = lastTotal;
+  document.getElementById('v3s').textContent = (lastTotal >= prevTotal ? '+' : '') + (lastTotal - prevTotal) + ' весов к прошлой';
+
+  var share = Math.round(last.outer / lastTotal * 100);
+  var v4 = document.getElementById('v4');
+  v4.textContent = share + '%';
+  v4.style.color = zl.color;
+  document.getElementById('v4s').textContent = 'вся остальная работа — внутрь';
+
+  /* ─── склад ──────────────────────────────────────────────── */
+  var box = document.getElementById('stockBox');
+  if (!last.stock) { box.style.display = 'none'; }
+  else {
+    var rows = document.getElementById('stockRows');
+    TRIANGLE.stockItems.forEach(function (s) {
+      var r = document.createElement('div');
+      r.className = 'r';
+      r.innerHTML = '<b></b><i></i>';
+      r.querySelector('b').textContent = s.name;
+      r.querySelector('i').textContent = s.since + ' · вес ' + s.w;
+      rows.appendChild(r);
+    });
+    document.getElementById('stockSum').textContent = 'Ждёт выхода — ' + last.stock + ' весов';
+    document.getElementById('stockNote').textContent = 'движение недели ' + last.outer;
+  }
+
+  document.getElementById('foot').textContent =
+    'Единица — действие, а не задача: подшаги свёрнуты, незаконченное не считается нигде. ' +
+    'Движение недели — сумма весов действий, дошедших до человека снаружи. ' +
+    'Путь — движение, накопленное по неделям: изнутри его поднять нельзя. ' +
+    TRIANGLE.note + '.';
+})();
+</script>
+</body>
+</html>
