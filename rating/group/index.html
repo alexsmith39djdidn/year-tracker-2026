@@ -61,7 +61,7 @@
     if (score === null) {
       i.style.width = '0%';
     } else {
-      i.style.width = Math.max(score, 1.5) + '%';
+      i.style.width = Math.min(Math.max(score, 1.5), 100) + '%';
       i.style.background = colorOf(score);
     }
     b.appendChild(i);
@@ -107,7 +107,8 @@
       n.textContent = s.name;
       var f = document.createElement('div');
       f.className = 'sfact';
-      f.textContent = s.value + (s.note ? ' · ' + s.note : '') + (s.stale ? '  ⚠ устарел' : '');
+      var dn = decayNote(s);
+      f.textContent = s.value + (s.note ? ' · ' + s.note : '') + (dn ? '  · ' + dn : '');
       left.appendChild(n); left.appendChild(f);
 
       var v = document.createElement('div');
@@ -115,19 +116,21 @@
       if (s.raw) {
         v.textContent = s.value;
         v.style.color = 'var(--ink)';
-        f.textContent = (s.note ? s.note : '') + (s.stale ? '  ⚠ устарел' : '');
+        f.textContent = (s.note ? s.note : '');
       } else if (s.score === null) {
         v.textContent = '—';
         v.style.color = 'var(--muted)';
       } else {
-        v.textContent = s.score;
-        v.style.color = colorOf(s.score);
-        if (s.stale) v.style.opacity = '0.55';
+        var e = effective(s);
+        v.textContent = e === null ? s.score : e;
+        v.style.color = colorOf(e === null ? s.score : e);
+        if (e === null) v.style.opacity = '0.55';
+        if (s.est) v.title = 'оценка Auri, не замер';
       }
 
       line.appendChild(left); line.appendChild(v);
       row.appendChild(line);
-      if (!s.raw) bar(s.stale ? null : s.score, row, 'sbar');
+      if (!s.raw) bar(effective(s), row, 'sbar');
       card.appendChild(row);
     });
 
@@ -138,7 +141,7 @@
 
   var o = overall();
   document.getElementById('stamp').textContent =
-    'карта ' + RATING.version + ' · ' + RATING.date + ' · индекс ' + o.index;
+    stamp() + ' · индекс ' + o.index;
 })();
 </script>
 </body>

@@ -7,6 +7,7 @@ var PARAM_HISTORY = {
     "09.08.2026",
     "16.08.2026",
     "23.08.2026",
+    "30.08.2026",
     "30.08.2026"
   ],
   "versions": [
@@ -16,7 +17,8 @@ var PARAM_HISTORY = {
     "v0.3",
     "v0.4",
     "v0.5",
-    "v0.6"
+    "v0.6",
+    "v0.7"
   ],
   "windows": [
     "неделя 19–25.07.2026",
@@ -25,6 +27,7 @@ var PARAM_HISTORY = {
     "неделя 03–09.08.2026 (⚠️ 05–08.08 без сбора — часть шкал на оценке)",
     "неделя 10–16.08.2026 (⚠️ откат 10–13.08 · 16.08 не дожит, вычтен из знаменателя)",
     "неделя 17–23.08.2026 (⚠️ вечерний сбор не отработал ни одного дня из семи · 23.08 не дожит)",
+    "неделя 24–30.08.2026 (шесть прожитых дней пн–сб · 30.08 не дожит, вычтен из знаменателя)",
     "неделя 24–30.08.2026 (шесть прожитых дней пн–сб · 30.08 не дожит, вычтен из знаменателя)"
   ],
   "index": [
@@ -34,7 +37,8 @@ var PARAM_HISTORY = {
     59,
     53,
     42,
-    62
+    62,
+    68
   ],
   "coverage": [
     70,
@@ -43,9 +47,20 @@ var PARAM_HISTORY = {
     71,
     71,
     34,
-    77
+    77,
+    76
   ],
   "groups": {
+    "Работа": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      96
+    ],
     "Интегральные": [
       54,
       58,
@@ -53,7 +68,8 @@ var PARAM_HISTORY = {
       64,
       46,
       41,
-      73
+      73,
+      72
     ],
     "Стабильность": [
       25,
@@ -62,7 +78,8 @@ var PARAM_HISTORY = {
       55,
       50,
       null,
-      81
+      81,
+      76
     ],
     "Питание": [
       67,
@@ -71,7 +88,8 @@ var PARAM_HISTORY = {
       63,
       65,
       null,
-      49
+      49,
+      52
     ],
     "Спорт": [
       64,
@@ -80,7 +98,8 @@ var PARAM_HISTORY = {
       50,
       67,
       48,
-      62
+      62,
+      64
     ],
     "Здоровье": [
       null,
@@ -89,7 +108,8 @@ var PARAM_HISTORY = {
       52,
       48,
       35,
-      41
+      41,
+      35
     ],
     "Голова": [
       43,
@@ -98,6 +118,7 @@ var PARAM_HISTORY = {
       71,
       40,
       null,
+      54,
       54
     ],
     "Дух": [
@@ -107,6 +128,7 @@ var PARAM_HISTORY = {
       null,
       null,
       null,
+      46,
       46
     ]
   },
@@ -119,6 +141,7 @@ var PARAM_HISTORY = {
         62,
         58,
         48,
+        72,
         72
       ],
       "values": [
@@ -128,9 +151,11 @@ var PARAM_HISTORY = {
         "≈62",
         "≈58 · откат съел, вернулось не всё",
         "≈48 · истощение без откиса · 4-я неделя без выходного",
+        "≈72 · шесть дней высокой энергии без откиса · но еда 1680 и отбой за полночь",
         "≈72 · шесть дней высокой энергии без откиса · но еда 1680 и отбой за полночь"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -141,6 +166,7 @@ var PARAM_HISTORY = {
       ],
       "est": [
         false,
+        true,
         true,
         true,
         true,
@@ -157,6 +183,7 @@ var PARAM_HISTORY = {
         80,
         46,
         null,
+        86,
         86
       ],
       "values": [
@@ -166,9 +193,11 @@ var PARAM_HISTORY = {
         "≈80 · «высоко» все дни",
         "≈46 · по дням 25·20·45·35·72·80",
         "не спрашивалась ни одного дня",
+        "≈86 · высокая все шесть дней, ни одного провала",
         "≈86 · высокая все шесть дней, ни одного провала"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -183,6 +212,7 @@ var PARAM_HISTORY = {
         true,
         true,
         true,
+        false,
         false,
         false
       ]
@@ -195,7 +225,8 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
-        88
+        88,
+        null
       ],
       "values": [
         "5.08 / 10",
@@ -204,9 +235,11 @@ var PARAM_HISTORY = {
         "сбор пропущен",
         "не собиралась",
         "не собиралась",
-        "44:15 за 6 дней · 138% плана · среднее 7:22/день"
+        "44:15 за 6 дней · 138% плана · среднее 7:22/день",
+        null
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -216,6 +249,7 @@ var PARAM_HISTORY = {
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -233,6 +267,7 @@ var PARAM_HISTORY = {
         49,
         34,
         34,
+        45,
         45
       ],
       "values": [
@@ -242,6 +277,7 @@ var PARAM_HISTORY = {
         "4 за полгода · новых нет",
         "5 за полгода · новый 10–13.08 (4 дня)",
         "5 за полгода · 22.08 под вопросом, не внесён",
+        "5 за полгода · ⭐ на этой неделе ноль: «я сам себе его не позволял»",
         "5 за полгода · ⭐ на этой неделе ноль: «я сам себе его не позволял»"
       ],
       "stale": [
@@ -251,9 +287,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -271,6 +309,7 @@ var PARAM_HISTORY = {
         64,
         48,
         null,
+        55,
         55
       ],
       "values": [
@@ -280,9 +319,11 @@ var PARAM_HISTORY = {
         "подъём 6:30–7:30 · сон ~8:12",
         "подъём 6:15–10:00 · ночи 7:00–12:00",
         "ни отбоя, ни подъёма, ни длины не собрано",
+        "⚠️ длина ровная (7:15–10:30, ср. 8:49), но фаза уехала: отбой 5 из 6 за полночь",
         "⚠️ длина ровная (7:15–10:30, ср. 8:49), но фаза уехала: отбой 5 из 6 за полночь"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -298,6 +339,7 @@ var PARAM_HISTORY = {
         true,
         false,
         false,
+        false,
         false
       ]
     },
@@ -309,6 +351,7 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
+        82,
         82
       ],
       "values": [
@@ -318,6 +361,7 @@ var PARAM_HISTORY = {
         "точек дня нет",
         "точек дня недостаточно",
         "точек дня нет",
+        "шесть ровных дней подряд, без рывков — метод «Спокойная работа»",
         "шесть ровных дней подряд, без рывков — метод «Спокойная работа»"
       ],
       "stale": [
@@ -327,9 +371,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -347,7 +393,8 @@ var PARAM_HISTORY = {
         10,
         34,
         10,
-        85
+        85,
+        null
       ],
       "values": [
         "нет целей недели",
@@ -356,9 +403,11 @@ var PARAM_HISTORY = {
         "1 из 10 измеримых линий",
         "34% по 10 линиям · работа 20.75 из 55 ч",
         "🔴 10% по 10 линиям · работа ≈24 из 48 ч · 0 линий из 12 взято",
-        "🟢 44:15 из 32 плановых · карточки 6/6 · движение 4/6 (Done) · ни одного нуля"
+        "🟢 44:15 из 32 плановых · карточки 6/6 · движение 4/6 (Done) · ни одного нуля",
+        null
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -368,6 +417,7 @@ var PARAM_HISTORY = {
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -385,6 +435,7 @@ var PARAM_HISTORY = {
         90,
         67,
         null,
+        84,
         84
       ],
       "values": [
@@ -394,9 +445,11 @@ var PARAM_HISTORY = {
         "≈4.6 из 5 · «отличное»",
         "3.7 из 5 · по дням 2·4·5",
         "не спрашивалось",
+        "высокое все дни · пт 28.08 лёгкая тревога «делаю не то»",
         "высокое все дни · пт 28.08 лёгкая тревога «делаю не то»"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -410,6 +463,7 @@ var PARAM_HISTORY = {
         false,
         false,
         true,
+        false,
         false,
         false,
         false
@@ -423,7 +477,8 @@ var PARAM_HISTORY = {
         100,
         64,
         null,
-        null
+        null,
+        100
       ],
       "values": [
         "2150 мл",
@@ -432,9 +487,11 @@ var PARAM_HISTORY = {
         "~3000 мл · 2 дня из 7",
         "≈1600 мл · «много/немного», цифры нет",
         "не спрашивалась",
-        "«много» без цифр все шесть дней — величины нет"
+        "«много» без цифр все шесть дней — величины нет",
+        "«много» все шесть дней — по шкале трёх уровней"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -449,6 +506,7 @@ var PARAM_HISTORY = {
         false,
         true,
         true,
+        false,
         false,
         false
       ]
@@ -461,6 +519,7 @@ var PARAM_HISTORY = {
         0,
         67,
         null,
+        65,
         65
       ],
       "values": [
@@ -470,9 +529,11 @@ var PARAM_HISTORY = {
         "0 чистых дней · оба дня печеньки",
         "2 чистых дня из 3 · печеньки 14.08",
         "0 записей в Meal Log",
+        "2 триггерных дня из 6 (сухарики 28.08, шоколад 26–27.08)",
         "2 триггерных дня из 6 (сухарики 28.08, шоколад 26–27.08)"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -487,6 +548,7 @@ var PARAM_HISTORY = {
         false,
         true,
         true,
+        false,
         false,
         false
       ]
@@ -499,6 +561,7 @@ var PARAM_HISTORY = {
         91,
         83,
         null,
+        38,
         38
       ],
       "values": [
@@ -508,9 +571,11 @@ var PARAM_HISTORY = {
         "4 приёма/день · 2 дня из 7",
         "89% приёмов · обед ровный, завтрак плавает",
         "0 записей в Meal Log",
+        "🔴 завтрак 0/6 · обед пропущен 3 раза · ужина не было 3 раза · первый приём 10:45–13:30",
         "🔴 завтрак 0/6 · обед пропущен 3 раза · ужина не было 3 раза · первый приём 10:45–13:30"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -525,6 +590,7 @@ var PARAM_HISTORY = {
         false,
         true,
         true,
+        false,
         false,
         false
       ]
@@ -537,6 +603,7 @@ var PARAM_HISTORY = {
         56,
         50,
         null,
+        58,
         58
       ],
       "values": [
@@ -546,9 +613,11 @@ var PARAM_HISTORY = {
         "~25% зелёных · 2 дня из 7",
         "преобладает 🟡, зелёных почти нет",
         "0 записей в Meal Log",
+        "основа нормальная (яйца, макароны, рис, курица) · фрукты 2 дня · френч-доги и фондан",
         "основа нормальная (яйца, макароны, рис, курица) · фрукты 2 дня · френч-доги и фондан"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -563,6 +632,7 @@ var PARAM_HISTORY = {
         false,
         true,
         true,
+        false,
         false,
         false
       ]
@@ -575,6 +645,7 @@ var PARAM_HISTORY = {
         66,
         60,
         null,
+        35,
         35
       ],
       "values": [
@@ -584,9 +655,11 @@ var PARAM_HISTORY = {
         "1900 из 2900 · 2 дня из 7",
         "≈1730 из 2900 · по дням 1330·1750·2110",
         "0 записей в Meal Log",
+        "🔴 ≈1680 из 2900 (58%) — недобор ~1200 шесть дней подряд",
         "🔴 ≈1680 из 2900 (58%) — недобор ~1200 шесть дней подряд"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -602,11 +675,13 @@ var PARAM_HISTORY = {
         true,
         true,
         false,
+        false,
         false
       ]
     },
     "Выносливость": {
       "scores": [
+        90,
         90,
         90,
         90,
@@ -622,9 +697,11 @@ var PARAM_HISTORY = {
         "10 км за 22:11 = 27.0 км/ч · замер 19.07",
         "10 км за 22:11 = 27.0 км/ч · замер 19.07",
         "10 км за 22:11 = 27.0 км/ч · замер 19.07 (35 дн)",
-        "10 км за 22:11 = 27.0 км/ч · замер 19.07 (35 дн)"
+        "10 км за 22:11 = 27.0 км/ч · замер 19.07 (35 дн)",
+        "10 км за 22:11 = 27.0 км/ч · замер 19.07 · вел 2/2 — держится"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -634,6 +711,7 @@ var PARAM_HISTORY = {
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -651,6 +729,7 @@ var PARAM_HISTORY = {
         30,
         100,
         null,
+        45,
         45
       ],
       "values": [
@@ -660,6 +739,7 @@ var PARAM_HISTORY = {
         "спина 7 дней из 7 (перекос в плечах)",
         "0 дней с болью · ⚠️ спина отдыхала лёжа",
         "не спрашивалось ни одного дня",
+        "⚠️ вернулся симптом: шея / спина / глаза по очереди — на неделе рекорда",
         "⚠️ вернулся симптом: шея / спина / глаза по очереди — на неделе рекорда"
       ],
       "stale": [
@@ -669,9 +749,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -689,9 +771,11 @@ var PARAM_HISTORY = {
         80,
         80,
         80,
+        80,
         80
       ],
       "values": [
+        "20 подтягиваний",
         "20 подтягиваний",
         "20 подтягиваний",
         "20 подтягиваний",
@@ -707,9 +791,11 @@ var PARAM_HISTORY = {
         true,
         true,
         true,
+        true,
         true
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -727,6 +813,7 @@ var PARAM_HISTORY = {
         40,
         36,
         13,
+        72,
         72
       ],
       "values": [
@@ -736,6 +823,7 @@ var PARAM_HISTORY = {
         "зарядка 3/7 · силовая 1/3 · вел 1/2",
         "зарядка 2/6 · силовая 1/3 · вел 1/2 · 0 из 12 за 10–13.08",
         "🔴 зарядка 0/6 · силовая 1/3 · вел 0/2 · 30 минут движения за неделю",
+        "🟢 движение 5 дней из 6 · Flash-Lite 2/2 · спорт-блоки 2/2 · вел 2/2 · зарядка 4/6",
         "🟢 движение 5 дней из 6 · Flash-Lite 2/2 · спорт-блоки 2/2 · вел 2/2 · зарядка 4/6"
       ],
       "stale": [
@@ -745,9 +833,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -765,6 +855,7 @@ var PARAM_HISTORY = {
         40,
         40,
         40,
+        40,
         40
       ],
       "values": [
@@ -773,6 +864,7 @@ var PARAM_HISTORY = {
         "плечо вперёд",
         "плечо вперёд",
         "плечо вперёд",
+        "плечо вперёд · замер 02.08",
         "плечо вперёд · замер 02.08",
         "плечо вперёд · замер 02.08"
       ],
@@ -783,9 +875,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -803,9 +897,11 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
+        null,
         null
       ],
       "values": [
+        "не мерили",
         "не мерили",
         "не мерили",
         "не мерили",
@@ -821,9 +917,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -841,7 +939,8 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
-        null
+        null,
+        59
       ],
       "values": [
         "не сделана",
@@ -850,9 +949,11 @@ var PARAM_HISTORY = {
         "не сделана",
         "не сделана",
         "не сделана",
-        "не сделана"
+        "не сделана",
+        "v0.1 · 18 групп · средний уровень 3.9 из 10 при целевом 6.6 · оценка, не замер"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -868,7 +969,8 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
-        false
+        false,
+        true
       ]
     },
     "Больные дни": {
@@ -879,6 +981,7 @@ var PARAM_HISTORY = {
         100,
         100,
         null,
+        null,
         null
       ],
       "values": [
@@ -887,6 +990,7 @@ var PARAM_HISTORY = {
         "0 за июль",
         "0 за неделю",
         "0 за неделю",
+        "не спрашивалось",
         "не спрашивалось",
         "не спрашивалось"
       ],
@@ -897,9 +1001,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -917,6 +1023,7 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
+        null,
         null
       ],
       "values": [
@@ -926,6 +1033,7 @@ var PARAM_HISTORY = {
         "74.1 кг · замер 02.08",
         "75.6 кг · +1.5 за 2 нед · замер 16.08 после еды",
         "75.6 кг · замер 16.08 · замера 23.08 не было",
+        "74.8 кг · замер 30.08 · стоит третью неделю подряд",
         "74.8 кг · замер 30.08 · стоит третью неделю подряд"
       ],
       "stale": [
@@ -935,9 +1043,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -955,9 +1065,11 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
+        null,
         null
       ],
       "values": [
+        "не мерили",
         "не мерили",
         "не мерили",
         "не мерили",
@@ -973,9 +1085,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -993,11 +1107,13 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
+        null,
         null
       ],
       "values": [
         "нет данных",
         "нет данных",
+        null,
         null,
         null,
         null,
@@ -1011,9 +1127,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1031,6 +1149,7 @@ var PARAM_HISTORY = {
         100,
         60,
         0,
+        22,
         22
       ],
       "values": [
@@ -1040,9 +1159,11 @@ var PARAM_HISTORY = {
         "7 дней из 7",
         "3 дня из 5 · 13.08 читал в худший день",
         "🔴 0 из 7 · книги не было: старая кончилась 16.08, новую не завели",
+        "🔴 ≈1 час за неделю (1% времени) · книги по-прежнему нет, пятая неделя",
         "🔴 ≈1 час за неделю (1% времени) · книги по-прежнему нет, пятая неделя"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -1057,6 +1178,7 @@ var PARAM_HISTORY = {
         false,
         true,
         true,
+        false,
         false,
         false
       ]
@@ -1069,6 +1191,7 @@ var PARAM_HISTORY = {
         57,
         17,
         null,
+        null,
         null
       ],
       "values": [
@@ -1078,9 +1201,11 @@ var PARAM_HISTORY = {
         "4 чистых вечера из 7",
         "≈1 чистый вечер из 6 · 34.5 ч экрана",
         "не собиралось",
+        "фильмы 28.08 вечер 4 ч · «Бэтмен» 29.08 · экраны названы, но не считаны",
         "фильмы 28.08 вечер 4 ч · «Бэтмен» 29.08 · экраны названы, но не считаны"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -1094,6 +1219,7 @@ var PARAM_HISTORY = {
         false,
         false,
         true,
+        false,
         false,
         false,
         false
@@ -1107,6 +1233,7 @@ var PARAM_HISTORY = {
         57,
         43,
         null,
+        85,
         85
       ],
       "values": [
@@ -1116,6 +1243,7 @@ var PARAM_HISTORY = {
         "вечерняя 2/7 · письменная 7/7",
         "вечерняя 3/6 · письменная 1/3",
         "вечерней рефлексии не было ни дня — это и есть сбор",
+        "🟢 вечерний сбор 6 из 6 · писал в дневник, сам ловил своё состояние",
         "🟢 вечерний сбор 6 из 6 · писал в дневник, сам ловил своё состояние"
       ],
       "stale": [
@@ -1125,9 +1253,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1145,6 +1275,7 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
+        null,
         null
       ],
       "values": [
@@ -1154,9 +1285,11 @@ var PARAM_HISTORY = {
         "данные есть, формулы нет",
         "данные есть, формулы нет",
         "данные есть, формулы нет",
-        "данные есть, формулы нет"
+        "данные есть, формулы нет",
+        "формула есть с 03.09 · сбор дней за эту неделю не вёлся — считаю с 06.09"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -1166,6 +1299,7 @@ var PARAM_HISTORY = {
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1183,6 +1317,7 @@ var PARAM_HISTORY = {
         null,
         null,
         null,
+        0,
         0
       ],
       "values": [
@@ -1192,6 +1327,7 @@ var PARAM_HISTORY = {
         "не упоминалась",
         "не упоминалась",
         "не спрашивалось",
+        "нет ни одного дня — спрашивалось все шесть",
         "нет ни одного дня — спрашивалось все шесть"
       ],
       "stale": [
@@ -1201,9 +1337,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1221,6 +1359,7 @@ var PARAM_HISTORY = {
         57,
         50,
         null,
+        92,
         92
       ],
       "values": [
@@ -1230,9 +1369,11 @@ var PARAM_HISTORY = {
         "≈4 из 7 · «были, но с пропусками»",
         "3 дня из 6 · держались и в откате",
         "не спрашивалось",
+        "🟢 да все шесть дней · плюс визуализация",
         "🟢 да все шесть дней · плюс визуализация"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -1247,6 +1388,7 @@ var PARAM_HISTORY = {
         false,
         true,
         true,
+        false,
         false,
         false
       ]
@@ -1259,6 +1401,7 @@ var PARAM_HISTORY = {
         null,
         100,
         null,
+        90,
         90
       ],
       "values": [
@@ -1268,6 +1411,7 @@ var PARAM_HISTORY = {
         "сбор пропущен",
         "⚠️ 100, но только 2 дня из 6 — оба лучшие",
         "не спрашивалось",
+        "вставал бодро или легко 6 из 6",
         "вставал бодро или легко 6 из 6"
       ],
       "stale": [
@@ -1277,9 +1421,11 @@ var PARAM_HISTORY = {
         false,
         true,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1297,6 +1443,7 @@ var PARAM_HISTORY = {
         null,
         100,
         null,
+        88,
         88
       ],
       "values": [
@@ -1306,6 +1453,7 @@ var PARAM_HISTORY = {
         "сбор пропущен",
         "⚠️ 100, но только 3 дня из 6",
         "не спрашивалось",
+        "карточки дня 6/6 · блок сбора закрывал сам",
         "карточки дня 6/6 · блок сбора закрывал сам"
       ],
       "stale": [
@@ -1315,9 +1463,11 @@ var PARAM_HISTORY = {
         false,
         true,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1335,6 +1485,7 @@ var PARAM_HISTORY = {
         20,
         0,
         0,
+        25,
         25
       ],
       "values": [
@@ -1344,6 +1495,7 @@ var PARAM_HISTORY = {
         "1/5 · грызёт постоянно",
         "1/5 · обкусаны под корень, обе руки",
         "1/5 · замер 16.08",
+        "⬆️ 2/5 · замер 30.08 · впервые сдвинулись с единицы — и на неделе рекорда",
         "⬆️ 2/5 · замер 30.08 · впервые сдвинулись с единицы — и на неделе рекорда"
       ],
       "stale": [
@@ -1353,9 +1505,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1373,6 +1527,7 @@ var PARAM_HISTORY = {
         80,
         80,
         80,
+        80,
         80
       ],
       "values": [
@@ -1382,6 +1537,7 @@ var PARAM_HISTORY = {
         "4/5 · без воспалений",
         "4/5 · спокойная, воспалений нет",
         "4/5 · замер 16.08",
+        "4/5 · замер 30.08 · третий замер подряд ровно",
         "4/5 · замер 30.08 · третий замер подряд ровно"
       ],
       "stale": [
@@ -1391,9 +1547,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1411,6 +1569,7 @@ var PARAM_HISTORY = {
         60,
         60,
         60,
+        60,
         60
       ],
       "values": [
@@ -1419,6 +1578,7 @@ var PARAM_HISTORY = {
         "ждём результаты",
         "D 20.5 ↓ с 52.9 · 1 из 8 вне нормы",
         "D 20.5 ↓ с 52.9 · 1 из 8 вне нормы",
+        "D 20.5 ↓ с 52.9 · замер 02.08",
         "D 20.5 ↓ с 52.9 · замер 02.08",
         "D 20.5 ↓ с 52.9 · замер 02.08"
       ],
@@ -1429,9 +1589,11 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
         false
       ],
       "est": [
+        false,
         false,
         false,
         false,
@@ -1449,6 +1611,7 @@ var PARAM_HISTORY = {
         0,
         0,
         0,
+        0,
         0
       ],
       "values": [
@@ -1458,9 +1621,11 @@ var PARAM_HISTORY = {
         "витамин D 0 из 7 · не куплен",
         "витамин D 0 из 7 · 4-я неделя, не куплен",
         "💊 витамин D — 0 из 42 дней курса · 6-я неделя",
+        "💊 витамин D — 0 из 49 дней курса · 7-я неделя, механизма так и нет",
         "💊 витамин D — 0 из 49 дней курса · 7-я неделя, механизма так и нет"
       ],
       "stale": [
+        false,
         false,
         false,
         false,
@@ -1476,6 +1641,217 @@ var PARAM_HISTORY = {
         false,
         false,
         false,
+        false,
+        false
+      ]
+    },
+    "Часы": {
+      "scores": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        103
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "44:15 за 6 дней · 105% нормы 7 ч/день · среднее 7:22/день"
+      ],
+      "stale": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "est": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "Стабильность": {
+      "scores": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        85
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "🟢 ни одного нуля · карточки 6/6 · движение 4/6 (Done) · разброс дней умеренный"
+      ],
+      "stale": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "est": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "Утро": {
+      "scores": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "час первого рабочего блока не собирался — считаю с 06.09"
+      ],
+      "stale": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "est": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "Попадание": {
+      "scores": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "Done из запланированного (Business Tasks) — считаю с 06.09"
+      ],
+      "stale": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "est": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "Заполненность головы": {
+      "scores": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "тест 04–18.09 · три цифры в день (утро · день · вечер) · база «🧠 Голова» в Notion"
+      ],
+      "stale": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "est": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
         false
       ]
     }
@@ -1483,11 +1859,11 @@ var PARAM_HISTORY = {
   "scaleGroup": {
     "Резерв": "Интегральные",
     "Энергия Current": "Интегральные",
-    "Продуктивность дня": "Интегральные",
+    "Продуктивность дня": "Прочее",
     "Дни откиса": "Интегральные",
     "Стабильность сна": "Стабильность",
     "Ровность дня": "Стабильность",
-    "Стабильность работы": "Стабильность",
+    "Стабильность работы": "Прочее",
     "Настроение": "Стабильность",
     "Вода": "Питание",
     "Без срывов": "Питание",
@@ -1516,6 +1892,11 @@ var PARAM_HISTORY = {
     "Ногти": "Здоровье",
     "Кожа лица": "Здоровье",
     "Витамины · анализы": "Здоровье",
-    "Приём добавок": "Здоровье"
+    "Приём добавок": "Здоровье",
+    "Часы": "Работа",
+    "Стабильность": "Работа",
+    "Утро": "Работа",
+    "Попадание": "Работа",
+    "Заполненность головы": "Голова"
   }
 };

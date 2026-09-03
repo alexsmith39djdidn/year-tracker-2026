@@ -131,7 +131,7 @@
   }
 
   var mk = document.getElementById('mk');
-  mk.style.left = (idx === null ? 0 : idx) + '%';
+  mk.style.left = (idx === null ? 0 : Math.min(idx, 100)) + '%';
   mk.style.color = colorOf(idx);
   mk.textContent = '▼ ' + (idx === null ? '' : idx);
 
@@ -166,7 +166,7 @@
   document.getElementById('l3').textContent = 'не мерили — ' + o.empty;
 
   document.getElementById('f1').textContent = o.indexNoSpirit === null ? '—' : o.indexNoSpirit;
-  document.getElementById('f2').textContent = RATING.version + ' · ' + RATING.date;
+  document.getElementById('f2').textContent = stamp() + ' · уровень ' + RATING.level;
   document.getElementById('f3').textContent = RATING.window;
   document.getElementById('f4').textContent = RATING.prev === null
     ? 'первый замер'
