@@ -53,7 +53,7 @@ var PARAM_HISTORY = {
     34,
     77,
     76,
-    89
+    90
   ],
   "groups": {
     "Работа": [
@@ -76,7 +76,7 @@ var PARAM_HISTORY = {
       41,
       73,
       72,
-      62
+      68
     ],
     "Стабильность": [
       25,
@@ -120,7 +120,7 @@ var PARAM_HISTORY = {
       35,
       41,
       35,
-      35
+      25
     ],
     "Голова": [
       43,
@@ -2031,6 +2031,98 @@ var PARAM_HISTORY = {
         false,
         false
       ]
+    },
+    "Усталость": {
+      "scores": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        85
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "🟢 15.5 из 100 — свежий · вход в неделю с запасом · нагрузка 0 · долг сна 0 · без движения 0 · еда −8 · разгон 0 · редкость движения −7.5"
+      ],
+      "stale": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "est": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "Временные курсы": {
+      "scores": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "🔴 0% · витамин D 0 из 49 дней (не куплен при уровне 20.5) · таблетки от прыщей — перезапуск 07.09, курс уже рвался на 2 месяца и стоил ещё двух"
+      ],
+      "stale": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "est": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
     }
   },
   "scaleGroup": {
@@ -2074,6 +2166,8 @@ var PARAM_HISTORY = {
     "Стабильность": "Работа",
     "Утро": "Работа",
     "Попадание": "Работа",
-    "Заполненность головы": "Голова"
+    "Заполненность головы": "Голова",
+    "Усталость": "Интегральные",
+    "Временные курсы": "Здоровье"
   }
 };
